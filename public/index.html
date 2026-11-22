@@ -371,10 +371,10 @@ input[type=email],input[type=password]{min-height:44px;border-radius:7px;border:
     <p class="note" id="tplMsg" data-i="tplNote"></p>
     <p class="note" data-i="layoutNote"></p>
     <div class="row"><button class="pri" id="edit"></button></div>
-    <div class="seg" id="palette"><button data-sh="" class="on" data-i="move"></button><button data-sh="round"></button><button data-sh="oval"></button><button data-sh="square"></button><button data-sh="rect"></button><button data-sh="booth"></button><button data-sh="pillar"></button></div>
+    <div class="seg" id="palette"><button data-sh="" class="on" data-i="move"></button><button data-sh="round"></button><button data-sh="oval"></button><button data-sh="square"></button><button data-sh="rect"></button><button data-sh="booth"></button><button data-sh="curve"></button><button data-sh="pillar"></button></div>
     <div id="tEdit" class="rec" hidden>
      <b data-i="selH"></b>
-     <div class="seg" id="tShape" style="margin:8px 0"><button data-sh="round" data-i="shRound"></button><button data-sh="oval" data-i="shOval"></button><button data-sh="square" data-i="shSquare"></button><button data-sh="rect" data-i="shRect"></button><button data-sh="booth" data-i="shBooth"></button></div>
+     <div class="seg" id="tShape" style="margin:8px 0"><button data-sh="round" data-i="shRound"></button><button data-sh="oval" data-i="shOval"></button><button data-sh="square" data-i="shSquare"></button><button data-sh="rect" data-i="shRect"></button><button data-sh="booth" data-i="shBooth"></button><button data-sh="curve" data-i="shCurve"></button></div>
      <div class="row"><label data-i="seatsL2"></label><button id="sMinus" aria-label="−">−</button><b id="sNum" style="font:600 20px Inter,sans-serif;min-width:2ch;text-align:center">4</b><button id="sPlus" aria-label="+">＋</button><button id="tRot" data-i="rotate"></button></div>
      <div class="row"><label data-i="tSize"></label><button id="zMinus" aria-label="−">−</button><b id="zNum" style="font:600 18px Inter,sans-serif;min-width:4ch;text-align:center">100%</b><button id="zPlus" aria-label="+">＋</button><button id="del" data-i="delT"></button></div>
     </div>
@@ -510,9 +510,9 @@ bookRulesH:['Booking 規則','Booking rules'],noShow:['甩底率','No-show rate'
 toH:['外賣 / 外送','Takeout and delivery'],toPerHr:['繁忙時每小時','Orders per hour'],toPerHrU:['單（LOW 時約 40%）','at BUSY (about 40% at LOW)'],toPortions:['每單','Portions per order'],portionU2:['份','portions'],toTicket:['每單金額','Average order'],
 posH:['匯入 POS 數據','Import POS data'],posNote:['貼上或者揀 CSV，每行「時間,人數」，例如 18:15,6。真實來客量會用做 MODERATE，LOW 同 BUSY 按你設定嘅滿坐程度比例計。','Paste or choose a CSV with one “time,guests” per line, e.g. 18:15,6. Real arrivals become MODERATE; LOW and BUSY use 70% and 130% of it.'],
 posPh:['11:30,4\n12:00,18\n12:15,22','11:30,4\n12:00,18\n12:15,22'],posApply:['套用數據','Apply data'],posClear:['清除匯入','Clear import'],posDone:['已套用 {0} 個時段。','Applied to {0} slots.'],posNone:['讀唔到資料，格式要係「時間,人數」。','Nothing read — use “time,guests” per line.'],posCleared:['已清除，返回用 LOW/MOD/BUSY。','Cleared — back to LOW/MOD/BUSY.'],
-planH:['平面圖','Floor plan'],tplL:['現成平面圖','Ready-made plan'],tplWindow:['套用 Window 餐廳（46 位）','Use Window restaurant (46 seats)'],tplNote:['會換走而家嘅枱、柱、廚房（吧枱位置）同入口，再放埋張圖做底：6 張圓枱、4 張方枱（2 張喺 PDR 房）、3 張 2 人枱。Lounge 卡位同吧枱凳未計入，要用可以自己加。','Replaces the current tables, pillars, kitchen (placed at the bar) and entrance, and sets the drawing as the background: 6 round, 4 square (2 in the PDR) and 3 two-seat tables. Lounge booths and bar stools are not included; add them if you use them.'],tplLoading:['載入緊…','Loading…'],tplDone:['已套用。可以撳「編輯版面」再微調。','Applied. Tap Edit layout to fine-tune.'],tplFail:['張圖載入唔到，枱位已經擺好，可以自己再匯入張圖。','Couldn’t load the image; tables are placed — import the image yourself if needed.'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
+planH:['平面圖','Floor plan'],tplL:['現成平面圖','Ready-made plan'],tplWindow:['套用 Window 餐廳（46 位 + Lounge 卡位）','Use Window restaurant (46 seats + lounge booths)'],tplNote:['會換走而家嘅枱、柱、廚房（吧枱位置）同入口，再放埋張圖做底：6 張圓枱、4 張方枱（2 張喺 PDR 房）、3 張 2 人枱，加 Lounge 3 個半圓卡位（每個 4 位）。吧枱凳未計入，要用可以自己加。','Replaces the current tables, pillars, kitchen (placed at the bar) and entrance, and sets the drawing as the background: 6 round, 4 square (2 in the PDR) and 3 two-seat tables, plus 3 half-round lounge booths (4 seats each). Bar stools are not included; add them if you use them.'],tplLoading:['載入緊…','Loading…'],tplDone:['已套用。可以撳「編輯版面」再微調。','Applied. Tap Edit layout to fine-tune.'],tplFail:['張圖載入唔到，枱位已經擺好，可以自己再匯入張圖。','Couldn’t load the image; tables are placed — import the image yourself if needed.'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
 editL:['編輯版面','Edit layout'],doneL:['完成編輯','Done editing'],delT:['刪除呢張枱','Delete table'],move:['選擇 / 拖動','Select / drag'],
-shPillar:['柱','Pillar'],pSel:['已選嘅柱','Selected pillar'],pSq:['方柱','Square'],pRound:['圓柱','Round'],pDel:['刪除呢條柱','Delete pillar'],shRound:['圓枱','Round'],shOval:['橢圓枱','Oval'],shSquare:['方枱','Square'],shRect:['長枱','Long'],shBooth:['卡位','Booth'],addSh:['＋{0}','+ {0}'],selH:['已選嘅枱','Selected table'],seatsL2:['凳數','Seats'],rotate:['轉 90°','Rotate 90°'],
+shPillar:['柱','Pillar'],pSel:['已選嘅柱','Selected pillar'],pSq:['方柱','Square'],pRound:['圓柱','Round'],pDel:['刪除呢條柱','Delete pillar'],shRound:['圓枱','Round'],shOval:['橢圓枱','Oval'],shSquare:['方枱','Square'],shRect:['長枱','Long'],shBooth:['卡位','Booth'],shCurve:['半圓卡位','Half-round booth'],addSh:['＋{0}','+ {0}'],selH:['已選嘅枱','Selected table'],seatsL2:['凳數','Seats'],rotate:['轉 90°','Rotate 90°'],rot45:['轉 45°','Rotate 45°'],rotSeat:['轉凳位','Turn chairs'],
 seatInfo:['而家有 {0} 張枱、{1} 個座位。','{0} tables, {1} seats.'],clearT:['清晒啲枱','Clear tables'],resetDemo:['還原示範','Restore sample'],
 kServed:['預計客人','Guests served'],kLost:['等唔切走咗','Walked away'],kPeak:['最忙','Busiest'],kWait:['最長等位','Longest wait'],kRev:['預計營業額','Projected sales'],kLab:['人工佔比','Labour %'],minS:['{0} 分鐘','{0} min'],
 seatC:['坐用 {0}/{1} 人','Seated {0}/{1}'],tabC:['枱 {0}/{1}','Tables {0}/{1}'],qC:['等位 {0} 人','Queue {0}'],closed:['已收工','Closed'],brk:['休息中','On break'],pred:['預測 {0}','Forecast {0}'],
@@ -637,7 +637,7 @@ const mkPeriods=(lang,dinner)=>[{id:1,name:lang==='en'?'Lunch':'午市',from:'11
 const CK=(id,zh,en,amt,u)=>({id,n:[zh,en],amt,u});
 const mkCosts=lang=>[CK(1,'租金','Rent',18000,'month'),CK(2,'燈油火蠟（電、煤氣、水）','Utilities (power, gas, water)',2400,'month'),CK(3,'食材成本','Food cost',32,'pctS'),CK(4,'信用卡 / POS 手續費','Card / POS fees',2.5,'pctS'),
  CK(5,'人工附加（CPP、EI、假期錢）','Payroll extras (CPP, EI, vacation)',15,'pctL'),CK(6,'保險','Insurance',450,'month'),CK(7,'市場推廣','Marketing',800,'month'),CK(8,'清潔同雜項用品','Cleaning and supplies',40,'day'),CK(9,'維修保養','Repairs and maintenance',350,'month'),CK(10,'經理 / 老闆薪金','Manager / owner salary',7000,'month'),CK(11,'外賣平台佣金（估）','Delivery app commission (est.)',4,'pctS')].map(c=>({id:c.id,name:c.n[lang==='en'?1:0],amt:c.amt,u:c.u}));
-const PLANS={window:{img:'plans/window-restaurant.jpg',tables:[{x:285,y:79,s:4,shape:'round',z:.8,rot:1},{x:371,y:79,s:4,shape:'round',z:.8,rot:1},{x:466,y:79,s:4,shape:'round',z:.8,rot:1},{x:551,y:109,s:4,shape:'round',z:.8,rot:1},{x:588,y:156,s:4,shape:'round',z:.8,rot:1},{x:643,y:251,s:4,shape:'round',z:.9},{x:456,y:152,s:4,shape:'square',z:.7},{x:509,y:152,s:4,shape:'square',z:.7},{x:184,y:94,s:4,shape:'square',z:.7},{x:226,y:94,s:4,shape:'square',z:.7},{x:324,y:61,s:2,shape:'oval',z:.55},{x:423,y:60,s:2,shape:'oval',z:.55},{x:515,y:64,s:2,shape:'oval',z:.55}],pillars:[{x:328,y:82,sh:'round',sz:12},{x:418,y:82,sh:'round',sz:12},{x:515,y:85,sh:'round',sz:12},{x:512,y:203,sh:'round',sz:12},{x:600,y:203,sh:'round',sz:12},{x:659,y:280,sh:'round',sz:12},{x:510,y:392,sh:'round',sz:12},{x:270,y:203,sh:'sq',sz:12}],kit:{x:408,y:191,w:40,h:96},ent:{x:367,y:401},bgOp:.6}};
+const PLANS={window:{img:'plans/window-restaurant.jpg',tables:[{x:285,y:79,s:4,shape:'round',z:.8,rot:1},{x:371,y:79,s:4,shape:'round',z:.8,rot:1},{x:466,y:79,s:4,shape:'round',z:.8,rot:1},{x:551,y:109,s:4,shape:'round',z:.8,rot:1},{x:588,y:156,s:4,shape:'round',z:.8,rot:1},{x:643,y:251,s:4,shape:'round',z:.9},{x:456,y:152,s:4,shape:'square',z:.7},{x:509,y:152,s:4,shape:'square',z:.7},{x:184,y:94,s:4,shape:'square',z:.7},{x:226,y:94,s:4,shape:'square',z:.7},{x:324,y:61,s:2,shape:'oval',z:.55},{x:423,y:60,s:2,shape:'oval',z:.55},{x:515,y:64,s:2,shape:'oval',z:.55},{x:527,y:363,s:4,shape:'curve',z:.72,rot:3},{x:563,y:330,s:4,shape:'curve',z:.72,rot:3},{x:600,y:300,s:4,shape:'curve',z:.72,rot:3}],pillars:[{x:328,y:82,sh:'round',sz:12},{x:418,y:82,sh:'round',sz:12},{x:515,y:85,sh:'round',sz:12},{x:512,y:203,sh:'round',sz:12},{x:600,y:203,sh:'round',sz:12},{x:659,y:280,sh:'round',sz:12},{x:270,y:203,sh:'sq',sz:12}],kit:{x:408,y:191,w:40,h:96},ent:{x:367,y:401},bgOp:.6}};
 function defaults(lang){const c=TYPES.casual;return{
  tables:[{x:100,y:95,s:2,shape:'round'},{x:190,y:95,s:2,shape:'round'},{x:280,y:95,s:2,shape:'square'},{x:405,y:105,s:4,shape:'round'},{x:515,y:105,s:4,shape:'square'},{x:115,y:225,s:4,shape:'round'},{x:245,y:225,s:4,shape:'round'},{x:380,y:235,s:4,shape:'square'},{x:510,y:235,s:4,shape:'round'},{x:270,y:370,s:6,shape:'rect'},{x:450,y:370,s:6,shape:'booth'},{x:665,y:285,s:4,shape:'square'},{x:665,y:410,s:8,shape:'rect'}],
  ent:{x:70,y:492},kit:{x:600,y:20,w:180,h:150},bgOp:.55,open:660,close:1320,slot:30,closed:{},date:today(),range:'week',scen:'mod',preset:'weekday',levels:{low:{},mod:{},busy:{}},rates:{},
@@ -814,6 +814,8 @@ const floor=document.createElement('canvas');floor.width=W;floor.height=H;
  for(const x of [70,230,390]){f.fillStyle='#fbfbfa';f.fillRect(x,7,90,6);f.strokeStyle=LINE;f.lineWidth=1;f.beginPath();f.moveTo(x,7.5);f.lineTo(x+90,7.5);f.moveTo(x,12.5);f.lineTo(x+90,12.5);f.moveTo(x,10);f.lineTo(x+90,10);f.stroke()}}
 const rr=(c,x,y,w,h,r)=>{c.beginPath();c.roundRect(x,y,w,h,r)};
 function geom(t){const s=t.s,sh=t.shape||'round',o=[],z=t.z||1;let w,h;
+ if(sh==='curve'){const r=(s<=3?15:s<=5?19:s<=7?23:27)*z,A=Math.PI/2+(t.rot||0)*Math.PI/4,st=Math.min(.78,Math.PI*.85/Math.max(1,s-1));w=h=(r+19)*2;
+  for(let k=0;k<s;k++){const a=A+Math.PI+(k-(s-1)/2)*st;o.push({x:t.x+Math.cos(a)*(r+12),y:t.y+Math.sin(a)*(r+12)})}return{w,h,ch:o,r,A}}
  if(sh==='round'){const r=(s<=2?16:s<=4?22:s<=6?28:Math.min(46,10+s*3))*z;w=h=r*2;for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s===2?0:-Math.PI/2)+(t.rot?Math.PI/s:0);o.push({x:t.x+Math.cos(a)*(r+11),y:t.y+Math.sin(a)*(r+11)})}}
  else if(sh==='oval'){const rx=Math.max(30,12+s*5)*z,ry=(s<=4?20:s<=8?24:28)*z,rot=t.rot?1:0;w=(rot?ry:rx)*2;h=(rot?rx:ry)*2;
   for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s%2?-Math.PI/2:0),dx=Math.cos(a)*(rx+11),dy=Math.sin(a)*(ry+11);o.push(rot?{x:t.x-dy,y:t.y+dx}:{x:t.x+dx,y:t.y+dy})}}
@@ -824,10 +826,11 @@ function geom(t){const s=t.s,sh=t.shape||'round',o=[],z=t.z||1;let w,h;
   const pts=[];for(let k=0;k<n1;k++)pts.push({dx:-Lg/2+Lg/n1*(k+.5),dy:-off});for(let k=0;k<n2;k++)pts.push({dx:-Lg/2+Lg/Math.max(1,n2)*(k+.5),dy:off});
   for(const p of pts)o.push(rot?{x:t.x-p.dy,y:t.y+p.dx}:{x:t.x+p.dx,y:t.y+p.dy})}
  return{w,h,ch:o}}
-function tPath(c,t,g,grow=0){const sh=t.shape||'round';if(sh==='round'){c.beginPath();c.arc(t.x,t.y,g.w/2+grow,0,Math.PI*2)}else if(sh==='oval'){c.beginPath();c.ellipse(t.x,t.y,g.w/2+grow,g.h/2+grow,0,0,Math.PI*2)}else rr(c,t.x-g.w/2-grow,t.y-g.h/2-grow,g.w+grow*2,g.h+grow*2,(sh==='square'?3:5)+grow)}
+function tPath(c,t,g,grow=0){const sh=t.shape||'round';if(sh==='curve'){c.beginPath();c.arc(t.x,t.y,g.r+grow,0,Math.PI*2)}else if(sh==='round'){c.beginPath();c.arc(t.x,t.y,g.w/2+grow,0,Math.PI*2)}else if(sh==='oval'){c.beginPath();c.ellipse(t.x,t.y,g.w/2+grow,g.h/2+grow,0,0,Math.PI*2)}else rr(c,t.x-g.w/2-grow,t.y-g.h/2-grow,g.w+grow*2,g.h+grow*2,(sh==='square'?3:5)+grow)}
 function hatch(c,x,y,w,h,col){c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.strokeStyle=col;c.lineWidth=1;for(let k=-h;k<w;k+=7){c.beginPath();c.moveTo(x+k,y+h);c.lineTo(x+k+h,y);c.stroke()}c.restore()}
 function drawTable(t,idx,st){const c=ctx,g=geom(t),sh=t.shape||'round';
- if(sh==='booth'){c.fillStyle='#6f7a84';const rot=t.rot,Lg=rot?g.h:g.w,th=11;
+ if(sh==='curve'){c.strokeStyle='#6f7a84';c.lineWidth=12;c.lineCap='round';c.beginPath();c.arc(t.x,t.y,g.r+13,g.A+Math.PI/2+.12,g.A+Math.PI*1.5-.12);c.stroke();c.lineCap='butt'}
+ else if(sh==='booth'){c.fillStyle='#6f7a84';const rot=t.rot,Lg=rot?g.h:g.w,th=11;
   for(const sgn of [-1,1]){if(rot)rr(c,t.x+sgn*(g.w/2+13)-th/2,t.y-Lg/2-4,th,Lg+8,3);else rr(c,t.x-Lg/2-4,t.y+sgn*(g.h/2+13)-th/2,Lg+8,th,3);c.fill()}}
  else for(const p of g.ch){c.fillStyle='#d3d8dc';rr(c,p.x-6,p.y-6,12,12,3);c.fill();c.strokeStyle='#b4bbc1';c.lineWidth=1;c.stroke()}
  tPath(c,t,g);c.fillStyle=st.heat!=null?st.heat:st.dirty?'#efece6':st.occ!=null?'#e3efee':'#ffffff';c.fill();
@@ -866,7 +869,8 @@ function along(pts,k){k=Math.max(0,Math.min(1,k));if(pts.length<3)return lerp(pt
 const walk=(a,b,k)=>along(route(a,b),k);
 function hitPl(t,pl){const g=geom(t),pr=pl.sz/2,dx=pl.x-t.x,dy=pl.y-t.y;
  if(g.ch.some(c=>Math.hypot(c.x-pl.x,c.y-pl.y)<6+pr+2))return true;
- const sh=t.shape||'round';if(sh==='round'||sh==='oval'){const a=g.w/2+pr+2,b=g.h/2+pr+2;return (dx*dx)/(a*a)+(dy*dy)/(b*b)<1}
+ const sh=t.shape||'round';if(sh==='curve'){const d=Math.hypot(dx,dy);if(d<g.r+pr+2)return true;return d<g.r+19+pr+2&&(dx*Math.cos(g.A)+dy*Math.sin(g.A))<d*.3}
+ if(sh==='round'||sh==='oval'){const a=g.w/2+pr+2,b=g.h/2+pr+2;return (dx*dx)/(a*a)+(dy*dy)/(b*b)<1}
  const e=sh==='booth'?18:0;return Math.abs(dx)<g.w/2+pr+2+(t.rot?e:0)&&Math.abs(dy)<g.h/2+pr+2+(t.rot?0:e)}
 function tBox(t){const g=geom(t),e=(t.shape==='booth'?20:18);return{hw:g.w/2+e,hh:g.h/2+e}}
 function crowd(t,x,y){const b=tBox(t);let a=0;
@@ -944,7 +948,7 @@ const pt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.
 const snap=v=>Math.round(v/10)*10;
 function hitP(p){for(let i=S.pillars.length-1;i>=0;i--){const q=S.pillars[i];if(Math.abs(p.x-q.x)<q.sz/2+8&&Math.abs(p.y-q.y)<q.sz/2+8)return i}return -1}
 function hitT(p){for(let i=S.tables.length-1;i>=0;i--){const t=S.tables[i],g=geom(t);if(Math.abs(p.x-t.x)<g.w/2+16&&Math.abs(p.y-t.y)<g.h/2+16)return i}return -1}
-const DEF_S={round:4,oval:6,square:4,rect:6,booth:4};
+const DEF_S={round:4,oval:6,square:4,rect:6,booth:4,curve:4};
 cv.addEventListener('pointerdown',e=>{if(!editing)return;const p=pt(e),pi=hitP(p),i=pi>=0?-1:hitT(p),K=S.kit,E=S.ent;selP=-1;
  if(pal==='pillar'&&pi<0&&i<0){S.pillars.push({x:snap(p.x),y:snap(p.y),sh:'sq',sz:22});selP=S.pillars.length-1;selT=-1;pushTables();renderTEdit();changed();return}
  if(pi>=0){selP=pi;selT=-1;drag={k:'p',i:pi,dx:p.x-S.pillars[pi].x,dy:p.y-S.pillars[pi].y}}
@@ -963,14 +967,14 @@ cv.addEventListener('pointerup',()=>{if(drag){drag=null;pushTables();changed()}}
 function toggleEdit(){editing=!editing;setPlay(false);$('#edit').textContent=tr(editing?'doneL':'editL');$('#hudMode').hidden=!editing;if(!editing){selT=-1;selP=-1}renderTEdit()}
 function renderTEdit(){const q=S.pillars[selP];$('#pEdit').hidden=!q||!editing;if(q){$('#pzNum').textContent=q.sz;$$('#pShape button').forEach(b=>b.classList.toggle('on',b.dataset.ps===q.sh))}
  const t=S.tables[selT];$('#tEdit').hidden=!t||!editing;if(!t)return;$('#sNum').textContent=t.s;$('#zNum').textContent=Math.round((t.z||1)*100)+'%';
- $$('#tShape button').forEach(b=>b.classList.toggle('on',b.dataset.sh===(t.shape||'round')));$('#tRot').hidden=false}
+ $$('#tShape button').forEach(b=>b.classList.toggle('on',b.dataset.sh===(t.shape||'round')));$('#tRot').hidden=false;$('#tRot').textContent=tr(t.shape==='curve'?'rot45':(t.shape||'round')==='round'?'rotSeat':'rotate')}
 $('#edit').onclick=toggleEdit;
-$('#tShape').onclick=e=>{const b=e.target.closest('button'),t=S.tables[selT];if(!b||!t)return;t.shape=b.dataset.sh;renderTEdit();pushTables();changed()};
+$('#tShape').onclick=e=>{const b=e.target.closest('button'),t=S.tables[selT];if(!b||!t)return;if((t.shape==='curve')!==(b.dataset.sh==='curve'))t.rot=0;t.shape=b.dataset.sh;renderTEdit();pushTables();changed()};
 $('#sMinus').onclick=()=>{const t=S.tables[selT];if(t&&t.s>1){t.s--;renderTEdit();pushTables();changed()}};
 $('#sPlus').onclick=()=>{const t=S.tables[selT];if(t&&t.s<14){t.s++;renderTEdit();pushTables();changed()}};
 $('#zMinus').onclick=()=>{const t=S.tables[selT];if(t){t.z=Math.max(.6,Math.round(((t.z||1)-.1)*10)/10);renderTEdit();pushTables();changed()}};
 $('#zPlus').onclick=()=>{const t=S.tables[selT];if(t){t.z=Math.min(1.8,Math.round(((t.z||1)+.1)*10)/10);renderTEdit();pushTables();changed()}};
-$('#tRot').onclick=()=>{const t=S.tables[selT];if(t){t.rot=t.rot?0:1;pushTables();changed()}};
+$('#tRot').onclick=()=>{const t=S.tables[selT];if(t){t.rot=t.shape==='curve'?((t.rot||0)+1)%8:t.rot?0:1;pushTables();changed()}};
 $('#del').onclick=()=>{if(selT>=0){S.tables.splice(selT,1);selT=-1;renderTEdit();changed()}};
 $('#palette').onclick=e=>{const b=e.target.closest('button');if(!b)return;pal=b.dataset.sh;$$('#palette button').forEach(x=>x.classList.toggle('on',x===b));if(!editing)toggleEdit()};
 $('#pShape').onclick=e=>{const b=e.target.closest('button'),q=S.pillars[selP];if(!b||!q)return;q.sh=b.dataset.ps;pushTables();renderTEdit();changed()};
@@ -1012,7 +1016,7 @@ $('#kmode').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.kmode=
 $('#lang').onclick=()=>{S.lang=S.lang==='en'?'zh':'en';applyLang();if(NI)renderAcct();renderMenus();renderStaffList();renderAutoDays();renderPeriods();renderCosts();changed()};
 function applyLang(){document.documentElement.lang=S.lang==='en'?'en':'zh-HK';
  $$('[data-i]').forEach(el=>el.textContent=tr(el.dataset.i));$$('[data-ip]').forEach(el=>el.placeholder=tr(el.dataset.ip));$$('[data-ia]').forEach(el=>el.setAttribute('aria-label',tr(el.dataset.ia)));
- $$('#palette [data-sh]').forEach(b=>{if(b.dataset.sh)b.textContent=tr('addSh',tr({round:'shRound',oval:'shOval',square:'shSquare',rect:'shRect',booth:'shBooth',pillar:'shPillar'}[b.dataset.sh]))});
+ $$('#palette [data-sh]').forEach(b=>{if(b.dataset.sh)b.textContent=tr('addSh',tr({round:'shRound',oval:'shOval',square:'shSquare',rect:'shRect',booth:'shBooth',curve:'shCurve',pillar:'shPillar'}[b.dataset.sh]))});
  $('#lang').textContent=S.lang==='en'?'中文':'English';{const sy=$('#sync');if(sy&&sy.dataset.k)sy.textContent=tr(sy.dataset.k,nowT())}$('#edit').textContent=tr(editing?'doneL':'editL');$('#play').textContent=tr(playing?'pause':'play');$('#heat').textContent=tr(heatOn?'heatOff':'heat')}
 
 /* ---------- POS ---------- */
