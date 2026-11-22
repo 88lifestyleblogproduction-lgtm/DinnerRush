@@ -367,6 +367,8 @@ input[type=email],input[type=password]{min-height:44px;border-radius:7px;border:
     <h3 data-i="planH"></h3>
     <div class="row"><input type="file" id="file" accept="image/*" data-ia="planH"></div>
     <div class="row"><label data-i="opacity"></label><input type="range" id="bgop" min="0.1" max="1" step="0.05" style="flex:1"><button id="bgclear" data-i="removeImg"></button></div>
+    <div class="row"><label data-i="tplL"></label><button id="tplWindow" data-i="tplWindow"></button></div>
+    <p class="note" id="tplMsg" data-i="tplNote"></p>
     <p class="note" data-i="layoutNote"></p>
     <div class="row"><button class="pri" id="edit"></button></div>
     <div class="seg" id="palette"><button data-sh="" class="on" data-i="move"></button><button data-sh="round"></button><button data-sh="oval"></button><button data-sh="square"></button><button data-sh="rect"></button><button data-sh="booth"></button><button data-sh="pillar"></button></div>
@@ -508,7 +510,7 @@ bookRulesH:['Booking 規則','Booking rules'],noShow:['甩底率','No-show rate'
 toH:['外賣 / 外送','Takeout and delivery'],toPerHr:['繁忙時每小時','Orders per hour'],toPerHrU:['單（LOW 時約 40%）','at BUSY (about 40% at LOW)'],toPortions:['每單','Portions per order'],portionU2:['份','portions'],toTicket:['每單金額','Average order'],
 posH:['匯入 POS 數據','Import POS data'],posNote:['貼上或者揀 CSV，每行「時間,人數」，例如 18:15,6。真實來客量會用做 MODERATE，LOW 同 BUSY 按你設定嘅滿坐程度比例計。','Paste or choose a CSV with one “time,guests” per line, e.g. 18:15,6. Real arrivals become MODERATE; LOW and BUSY use 70% and 130% of it.'],
 posPh:['11:30,4\n12:00,18\n12:15,22','11:30,4\n12:00,18\n12:15,22'],posApply:['套用數據','Apply data'],posClear:['清除匯入','Clear import'],posDone:['已套用 {0} 個時段。','Applied to {0} slots.'],posNone:['讀唔到資料，格式要係「時間,人數」。','Nothing read — use “time,guests” per line.'],posCleared:['已清除，返回用 LOW/MOD/BUSY。','Cleared — back to LOW/MOD/BUSY.'],
-planH:['平面圖','Floor plan'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
+planH:['平面圖','Floor plan'],tplL:['現成平面圖','Ready-made plan'],tplWindow:['套用 Window 餐廳（46 位）','Use Window restaurant (46 seats)'],tplNote:['會換走而家嘅枱、柱、廚房（吧枱位置）同入口，再放埋張圖做底：6 張圓枱、4 張方枱（2 張喺 PDR 房）、3 張 2 人枱。Lounge 卡位同吧枱凳未計入，要用可以自己加。','Replaces the current tables, pillars, kitchen (placed at the bar) and entrance, and sets the drawing as the background: 6 round, 4 square (2 in the PDR) and 3 two-seat tables. Lounge booths and bar stools are not included; add them if you use them.'],tplLoading:['載入緊…','Loading…'],tplDone:['已套用。可以撳「編輯版面」再微調。','Applied. Tap Edit layout to fine-tune.'],tplFail:['張圖載入唔到，枱位已經擺好，可以自己再匯入張圖。','Couldn’t load the image; tables are placed — import the image yourself if needed.'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
 editL:['編輯版面','Edit layout'],doneL:['完成編輯','Done editing'],delT:['刪除呢張枱','Delete table'],move:['選擇 / 拖動','Select / drag'],
 shPillar:['柱','Pillar'],pSel:['已選嘅柱','Selected pillar'],pSq:['方柱','Square'],pRound:['圓柱','Round'],pDel:['刪除呢條柱','Delete pillar'],shRound:['圓枱','Round'],shOval:['橢圓枱','Oval'],shSquare:['方枱','Square'],shRect:['長枱','Long'],shBooth:['卡位','Booth'],addSh:['＋{0}','+ {0}'],selH:['已選嘅枱','Selected table'],seatsL2:['凳數','Seats'],rotate:['轉 90°','Rotate 90°'],
 seatInfo:['而家有 {0} 張枱、{1} 個座位。','{0} tables, {1} seats.'],clearT:['清晒啲枱','Clear tables'],resetDemo:['還原示範','Restore sample'],
@@ -635,6 +637,7 @@ const mkPeriods=(lang,dinner)=>[{id:1,name:lang==='en'?'Lunch':'午市',from:'11
 const CK=(id,zh,en,amt,u)=>({id,n:[zh,en],amt,u});
 const mkCosts=lang=>[CK(1,'租金','Rent',18000,'month'),CK(2,'燈油火蠟（電、煤氣、水）','Utilities (power, gas, water)',2400,'month'),CK(3,'食材成本','Food cost',32,'pctS'),CK(4,'信用卡 / POS 手續費','Card / POS fees',2.5,'pctS'),
  CK(5,'人工附加（CPP、EI、假期錢）','Payroll extras (CPP, EI, vacation)',15,'pctL'),CK(6,'保險','Insurance',450,'month'),CK(7,'市場推廣','Marketing',800,'month'),CK(8,'清潔同雜項用品','Cleaning and supplies',40,'day'),CK(9,'維修保養','Repairs and maintenance',350,'month'),CK(10,'經理 / 老闆薪金','Manager / owner salary',7000,'month'),CK(11,'外賣平台佣金（估）','Delivery app commission (est.)',4,'pctS')].map(c=>({id:c.id,name:c.n[lang==='en'?1:0],amt:c.amt,u:c.u}));
+const PLANS={window:{img:'plans/window-restaurant.jpg',tables:[{x:285,y:79,s:4,shape:'round',z:.8,rot:1},{x:371,y:79,s:4,shape:'round',z:.8,rot:1},{x:466,y:79,s:4,shape:'round',z:.8,rot:1},{x:551,y:109,s:4,shape:'round',z:.8,rot:1},{x:588,y:156,s:4,shape:'round',z:.8,rot:1},{x:643,y:251,s:4,shape:'round',z:.9},{x:456,y:152,s:4,shape:'square',z:.7},{x:509,y:152,s:4,shape:'square',z:.7},{x:184,y:94,s:4,shape:'square',z:.7},{x:226,y:94,s:4,shape:'square',z:.7},{x:324,y:61,s:2,shape:'oval',z:.55},{x:423,y:60,s:2,shape:'oval',z:.55},{x:515,y:64,s:2,shape:'oval',z:.55}],pillars:[{x:328,y:82,sh:'round',sz:12},{x:418,y:82,sh:'round',sz:12},{x:515,y:85,sh:'round',sz:12},{x:512,y:203,sh:'round',sz:12},{x:600,y:203,sh:'round',sz:12},{x:659,y:280,sh:'round',sz:12},{x:510,y:392,sh:'round',sz:12},{x:270,y:203,sh:'sq',sz:12}],kit:{x:408,y:191,w:40,h:96},ent:{x:367,y:401},bgOp:.6}};
 function defaults(lang){const c=TYPES.casual;return{
  tables:[{x:100,y:95,s:2,shape:'round'},{x:190,y:95,s:2,shape:'round'},{x:280,y:95,s:2,shape:'square'},{x:405,y:105,s:4,shape:'round'},{x:515,y:105,s:4,shape:'square'},{x:115,y:225,s:4,shape:'round'},{x:245,y:225,s:4,shape:'round'},{x:380,y:235,s:4,shape:'square'},{x:510,y:235,s:4,shape:'round'},{x:270,y:370,s:6,shape:'rect'},{x:450,y:370,s:6,shape:'booth'},{x:665,y:285,s:4,shape:'square'},{x:665,y:410,s:8,shape:'rect'}],
  ent:{x:70,y:492},kit:{x:600,y:20,w:180,h:150},bgOp:.55,open:660,close:1320,slot:30,closed:{},date:today(),range:'week',scen:'mod',preset:'weekday',levels:{low:{},mod:{},busy:{}},rates:{},
@@ -811,7 +814,7 @@ const floor=document.createElement('canvas');floor.width=W;floor.height=H;
  for(const x of [70,230,390]){f.fillStyle='#fbfbfa';f.fillRect(x,7,90,6);f.strokeStyle=LINE;f.lineWidth=1;f.beginPath();f.moveTo(x,7.5);f.lineTo(x+90,7.5);f.moveTo(x,12.5);f.lineTo(x+90,12.5);f.moveTo(x,10);f.lineTo(x+90,10);f.stroke()}}
 const rr=(c,x,y,w,h,r)=>{c.beginPath();c.roundRect(x,y,w,h,r)};
 function geom(t){const s=t.s,sh=t.shape||'round',o=[],z=t.z||1;let w,h;
- if(sh==='round'){const r=(s<=2?16:s<=4?22:s<=6?28:Math.min(46,10+s*3))*z;w=h=r*2;for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s===2?0:-Math.PI/2);o.push({x:t.x+Math.cos(a)*(r+11),y:t.y+Math.sin(a)*(r+11)})}}
+ if(sh==='round'){const r=(s<=2?16:s<=4?22:s<=6?28:Math.min(46,10+s*3))*z;w=h=r*2;for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s===2?0:-Math.PI/2)+(t.rot?Math.PI/s:0);o.push({x:t.x+Math.cos(a)*(r+11),y:t.y+Math.sin(a)*(r+11)})}}
  else if(sh==='oval'){const rx=Math.max(30,12+s*5)*z,ry=(s<=4?20:s<=8?24:28)*z,rot=t.rot?1:0;w=(rot?ry:rx)*2;h=(rot?rx:ry)*2;
   for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s%2?-Math.PI/2:0),dx=Math.cos(a)*(rx+11),dy=Math.sin(a)*(ry+11);o.push(rot?{x:t.x-dy,y:t.y+dx}:{x:t.x+dx,y:t.y+dy})}}
  else if(sh==='square'){const side=(s<=4?40:s<=8?60:76)*z;w=h=side;const per=[0,0,0,0];for(let k=0;k<s;k++)per[[0,2,1,3][k%4]]++;const d=side/2+11;
@@ -861,6 +864,10 @@ function along(pts,k){k=Math.max(0,Math.min(1,k));if(pts.length<3)return lerp(pt
  const seg=[];let tot=0;for(let i=1;i<pts.length;i++){const l=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);seg.push(l);tot+=l}
  let d=k*tot;for(let i=0;i<seg.length;i++){if(d<=seg[i]||i===seg.length-1)return lerp(pts[i],pts[i+1],seg[i]?Math.min(1,d/seg[i]):1);d-=seg[i]}return pts[pts.length-1]}
 const walk=(a,b,k)=>along(route(a,b),k);
+function hitPl(t,pl){const g=geom(t),pr=pl.sz/2,dx=pl.x-t.x,dy=pl.y-t.y;
+ if(g.ch.some(c=>Math.hypot(c.x-pl.x,c.y-pl.y)<6+pr+2))return true;
+ const sh=t.shape||'round';if(sh==='round'||sh==='oval'){const a=g.w/2+pr+2,b=g.h/2+pr+2;return (dx*dx)/(a*a)+(dy*dy)/(b*b)<1}
+ const e=sh==='booth'?18:0;return Math.abs(dx)<g.w/2+pr+2+(t.rot?e:0)&&Math.abs(dy)<g.h/2+pr+2+(t.rot?0:e)}
 function tBox(t){const g=geom(t),e=(t.shape==='booth'?20:18);return{hw:g.w/2+e,hh:g.h/2+e}}
 function crowd(t,x,y){const b=tBox(t);let a=0;
  for(const o of S.tables){if(o===t)continue;const c=tBox(o),ox=b.hw+c.hw-Math.abs(x-o.x),oy=b.hh+c.hh-Math.abs(y-o.y);if(ox>0&&oy>0)a+=ox*oy}
@@ -869,7 +876,7 @@ function crowd(t,x,y){const b=tBox(t);let a=0;
 function pushTables(){
  for(let it=0;it<6;it++){let moved=false;
   for(const t of S.tables){const b=tBox(t);
-   for(const pl of S.pillars){const pr=pl.sz/2+3,ox=b.hw+pr-Math.abs(t.x-pl.x),oy=b.hh+pr-Math.abs(t.y-pl.y);if(!(ox>0&&oy>0))continue;
+   for(const pl of S.pillars){if(!hitPl(t,pl))continue;const pr=pl.sz/2+3;
     const r10=v=>Math.ceil(v/10)*10,cands=[];
     for(const [dx,dy] of [[pl.x+pr+b.hw-t.x,0],[pl.x-pr-b.hw-t.x,0],[0,pl.y+pr+b.hh-t.y],[0,pl.y-pr-b.hh-t.y]]){const x=t.x+Math.sign(dx)*r10(Math.abs(dx)),y=t.y+Math.sign(dy)*r10(Math.abs(dy));cands.push({x,y,score:crowd(t,x,y)+Math.hypot(x-t.x,y-t.y)})}
     cands.sort((a,b)=>a.score-b.score);t.x=cands[0].x;t.y=cands[0].y;moved=true}}
@@ -956,7 +963,7 @@ cv.addEventListener('pointerup',()=>{if(drag){drag=null;pushTables();changed()}}
 function toggleEdit(){editing=!editing;setPlay(false);$('#edit').textContent=tr(editing?'doneL':'editL');$('#hudMode').hidden=!editing;if(!editing){selT=-1;selP=-1}renderTEdit()}
 function renderTEdit(){const q=S.pillars[selP];$('#pEdit').hidden=!q||!editing;if(q){$('#pzNum').textContent=q.sz;$$('#pShape button').forEach(b=>b.classList.toggle('on',b.dataset.ps===q.sh))}
  const t=S.tables[selT];$('#tEdit').hidden=!t||!editing;if(!t)return;$('#sNum').textContent=t.s;$('#zNum').textContent=Math.round((t.z||1)*100)+'%';
- $$('#tShape button').forEach(b=>b.classList.toggle('on',b.dataset.sh===(t.shape||'round')));$('#tRot').hidden=!(t.shape==='rect'||t.shape==='booth'||t.shape==='oval')}
+ $$('#tShape button').forEach(b=>b.classList.toggle('on',b.dataset.sh===(t.shape||'round')));$('#tRot').hidden=false}
 $('#edit').onclick=toggleEdit;
 $('#tShape').onclick=e=>{const b=e.target.closest('button'),t=S.tables[selT];if(!b||!t)return;t.shape=b.dataset.sh;renderTEdit();pushTables();changed()};
 $('#sMinus').onclick=()=>{const t=S.tables[selT];if(t&&t.s>1){t.s--;renderTEdit();pushTables();changed()}};
@@ -991,6 +998,10 @@ $('#open').onchange=$('#close').onchange=()=>{const o=toMin($('#open').value||'1
 let emode='traffic';
 $('#emode').onclick=e=>{const b=e.target.closest('button');if(!b)return;emode=b.dataset.m;$$('#emode button').forEach(x=>x.classList.toggle('on',x===b));$('#trafficTools').hidden=emode!=='traffic';renderSlots()};
 $('#lvReset').onclick=()=>{S.lvOcc={...LVDEF};initInputs();changed()};
+$('#tplWindow').onclick=async()=>{const P=PLANS.window,m=$('#tplMsg');m.textContent=tr('tplLoading');
+ S.tables=P.tables.map(t=>({...t}));S.pillars=P.pillars.map(q=>({...q}));S.kit={...P.kit};S.ent={...P.ent};S.bgOp=P.bgOp;selT=-1;selP=-1;
+ let ok=true;try{const r=await fetch(P.img);if(!r.ok)throw 0;const b=await r.blob();S.bg=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(b)});bgImg=new Image();bgImg.src=S.bg}catch(e){ok=false}
+ $('#bgop').value=S.bgOp;pushTables();renderTEdit();changed();m.textContent=tr(ok?'tplDone':'tplFail')};
 $('#scenSeg').onclick=e=>{const b=e.target.closest('button');if(b)setScen(b.dataset.sc)};
 function setScen(sc){S.scen=sc;_adC.clear();RES=simulate(viewDate,S.scen,true);renderDetail();save()}
 $('#presets').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.p){S.preset=b.dataset.p;S.levels={low:{},mod:{},busy:{}}}else for(const s of slotList())S.levels[S.scen][s]=b.dataset.all;S.rates={};changed()};
