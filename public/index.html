@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5d63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DinnerRush">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<script type="module" src="/auth.js"></script>
+
+<title>DinnerRush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+HK:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a restaurant operations console — calm, exact, for a manager planning the week
+   IDEA: an architect's floor plan with live service overlaid, and an ops ledger beneath it
+   PICTURE: the plan view — tables with service-progress rings, guests as dots, staff as initialled markers
+   COLOUR and TYPE: white and graphite, one deep teal accent, LOW blue / MODERATE ochre / BUSY brick; Inter + Noto Sans HK
+   LAYOUT: header ledger of figures, plan + control panel, scenarios, insight report, forecasts, roster */
+:root{color-scheme:light dark;--bg:light-dark(#f5f6f7,#111417);--ink:light-dark(#15181c,#e8ebee);--mut:light-dark(#5d6873,#9ba7b2);--card:light-dark(#fff,#191d21);--line:light-dark(#e2e5e9,#2a3037);--soft:light-dark(#f0f2f4,#20262c);--brand:#0b5d63;--brand2:light-dark(#0b5d63,#6cc6cc);--low:#4a86b5;--mod:#c98f22;--busy:#c2483b;--off:light-dark(#aab2ba,#4b545d);--good:light-dark(#2f7d5b,#62c294)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,"Noto Sans HK",system-ui,sans-serif;overflow-x:clip;font-feature-settings:"tnum" 1}
+.band{padding:clamp(18px,2.6vw,36px) max(4vw,14px)}
+.top{background:var(--card);border-bottom:1px solid var(--line);padding-bottom:0;padding-top:max(clamp(18px,2.6vw,36px),env(safe-area-inset-top))}
+body{padding-bottom:env(safe-area-inset-bottom)}
+.tophead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.brandmark{display:flex;align-items:center;gap:10px}
+.brandmark i{width:30px;height:30px;border-radius:8px;background:var(--brand);display:inline-block;position:relative;flex:none}
+.brandmark i::after{content:"";position:absolute;inset:8px;border:2px solid #fff;border-radius:50%}
+.top h1{font:700 clamp(26px,3.4vw,36px)/1.1 Inter,"Noto Sans HK",sans-serif;margin:0;letter-spacing:-.01em}
+.top p{margin:6px 0 0;color:var(--mut);font-size:14px;max-width:80ch}
+.scope{display:inline-block;margin-top:10px;background:var(--soft);border-radius:6px;padding:3px 10px;font-size:13px;color:var(--mut)}
+.lang{flex:none}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-top:16px;border-top:1px solid var(--line)}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:480px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{padding:12px 14px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi:first-child{padding-left:0}
+.kpi b{display:block;font:600 clamp(20px,2.4vw,26px)/1.15 Inter,"Noto Sans HK",sans-serif;white-space:nowrap;letter-spacing:-.01em}
+.kpi span{font-size:12.5px;color:var(--mut)}
+.wrap{max-width:1240px;margin:0 auto}
+.main{display:grid;gap:16px;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}
+@media(max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.hud{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:2px 2px 10px}
+.clock{font:600 26px/1 Inter,sans-serif;white-space:nowrap;margin-right:6px;letter-spacing:-.02em}
+.badge{color:#fff;border-radius:5px;padding:3px 9px;font-weight:600;font-size:12px;white-space:nowrap;letter-spacing:.02em}
+.chip{background:var(--soft);border-radius:5px;padding:3px 9px;font-size:13px;white-space:nowrap;color:var(--mut)}
+.hud .sm{min-height:32px;font-size:13px;margin-left:auto}
+.cvbox{position:relative;width:100%;aspect-ratio:800/520;border-radius:6px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
+.cvbox canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cvlegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:8px}
+.cvlegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.ctrl{display:flex;gap:8px;align-items:center;padding-top:10px;flex-wrap:wrap}
+.ctrl input[type=range]{flex:1 1 100%}
+button,select,input,textarea{font:inherit;font-size:16px;color:inherit}
+button{min-height:44px;border-radius:7px;border:1px solid var(--line);background:var(--card);padding:0 14px;cursor:pointer;font-size:14px;font-weight:500}
+button:hover:not(:disabled){border-color:var(--mut)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--brand2);outline-offset:2px}
+.pri{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+.ff{background:var(--ink);color:var(--card);border-color:var(--ink);font-weight:600}
+select,input[type=text],input[type=time],input[type=number],input[type=date],textarea{min-height:44px;border-radius:7px;border:1px solid var(--line);background:var(--card);padding:0 10px}
+textarea{width:100%;min-height:96px;padding:8px 10px;font-size:14px}
+input[type=number]{width:84px}
+input[type=range]{accent-color:var(--brand);min-height:44px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-radius:0;background:none;flex:1 0 auto;font-weight:500;color:var(--mut);border-bottom:2px solid transparent;padding:0 12px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
+.pane{padding:16px;display:none}.pane.on{display:block}
+.pane h3{margin:18px 0 8px;font-size:14px;font-weight:600;text-transform:none}.pane h3:first-child{margin-top:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.row>label:first-child{font-size:13px;color:var(--mut);min-width:8em}
+.unit{font-size:13px;color:var(--mut)}
+.note{font-size:13px;color:var(--mut);margin:6px 0 12px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:4px;margin:10px 0}
+.slots button{padding:4px;min-height:50px;color:#fff;border:0;border-radius:5px;font-size:12px;line-height:1.25;position:relative;font-weight:500}
+.slots button small{display:block;font-weight:700;font-size:11px;letter-spacing:.03em}
+.slots button i{position:absolute;top:2px;right:4px;font-style:normal;font-size:9px;opacity:.9}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font-size:13px;padding:0 10px}
+.seg button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.seg.lv button.on[data-sc=low]{background:var(--low);border-color:var(--low)}.seg.lv button.on[data-sc=mod]{background:var(--mod);border-color:var(--mod)}.seg.lv button.on[data-sc=busy]{background:var(--busy);border-color:var(--busy)}
+.blist{list-style:none;margin:10px 0 0;padding:0;max-height:360px;overflow:auto}
+.blist li{display:grid;grid-template-columns:58px minmax(0,1fr) auto auto 44px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.blist li.dh{display:block;font-weight:600;font-size:13px;color:var(--mut);border-top:0;padding:10px 0 2px}
+.blist time{font:600 16px Inter,sans-serif;white-space:nowrap}
+.blist a{font-size:13px;color:var(--brand2);white-space:nowrap}
+.blist .called{opacity:.55}
+.warn{color:var(--busy);font-size:12.5px;display:block}
+.ok{color:var(--good);font-size:12.5px;display:block}
+.rec{background:var(--soft);border-radius:8px;padding:12px 14px;font-size:14px;margin-top:10px}
+.toggle{display:flex;gap:10px;align-items:center;background:var(--soft);border-radius:8px;padding:10px 12px;margin-bottom:10px;cursor:pointer}
+.toggle span small{display:block;color:var(--mut);font-size:12.5px}
+.hist{display:flex;align-items:flex-end;gap:2px;height:80px;margin:8px 0 4px;border-bottom:1px solid var(--line)}
+.hist div{flex:1;background:var(--brand);border-radius:2px 2px 0 0;min-height:1px;opacity:.85}
+.histx{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.mrow{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;align-items:end}
+.mrow label{display:flex;flex-direction:column;font-size:12.5px;color:var(--mut);gap:2px}
+.mrow input,.mrow select{width:100%}
+.mrow .nm{grid-column:1/-1;display:flex;gap:8px}.mrow .nm input{flex:1;font-weight:600}
+.mrow .w2{grid-column:span 2}.mrow .wall{grid-column:1/-1}
+.mrow .win{display:flex;gap:6px;align-items:center}.mrow .win input{flex:1;padding:0 6px}
+.days7{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.days7 button{min-width:40px;min-height:40px;padding:0 6px;font-size:13px}
+.days7 button.on{background:var(--off);color:#fff;border-color:var(--off)}
+.adays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:6px 0 10px}
+.adays label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);text-align:center;gap:2px}
+.adays input{width:100%;padding:0 4px;text-align:center}
+.fig{position:relative;min-height:300px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--mut);margin:8px 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+h2{font:700 clamp(21px,2.4vw,26px)/1.2 Inter,"Noto Sans HK",sans-serif;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+h3.sub{font-size:16px;font-weight:600;margin:28px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--mut);font-weight:500;font-size:12.5px}
+th:first-child,td:first-child{text-align:left}
+tr.click{cursor:pointer}tr.sel td{background:var(--soft);font-weight:600}
+.pill{color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;letter-spacing:.02em}
+.scroll{overflow-x:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;margin:12px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;text-align:left;min-height:auto;display:block;width:100%;font-weight:400}
+.card.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.card dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;margin:10px 0 0;font-size:13.5px}
+.card dt{color:var(--mut)}.card dd{margin:0;text-align:right;font-weight:600;white-space:nowrap}
+.card .big{font:600 28px/1 Inter,sans-serif;display:block;margin-top:10px;letter-spacing:-.02em}
+.report{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:clamp(16px,2.4vw,28px)}
+.rhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.score{display:flex;align-items:baseline;gap:8px}
+.score b{font:700 44px/1 Inter,sans-serif;letter-spacing:-.03em}
+.score span{font-size:13px;color:var(--mut)}
+.rmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:16px 0}
+.rmet div{padding:10px 12px 10px 0}
+.rmet b{display:block;font-size:19px;font-weight:600}.rmet span{font-size:12.5px;color:var(--mut)}
+.find{margin:0;padding-left:18px}.find li{margin:4px 0}
+.recs td{white-space:normal;vertical-align:top}.recs td:nth-child(2),.recs th:nth-child(2){text-align:left}.recs td.n{white-space:nowrap}
+.recs small{display:block;color:var(--mut);font-size:12.5px}
+.pos{color:var(--good);font-weight:600}.neg{color:var(--busy);font-weight:600}
+.roster{table-layout:fixed;min-width:820px}.roster th:first-child{width:8.5em}.roster td,.roster th{text-align:center;padding:4px;white-space:normal}
+.roster td:first-child,.roster th:first-child{text-align:left;padding-left:0}
+.roster td button{min-height:38px;width:100%;font-size:12px;padding:0 4px;line-height:1.2;font-weight:500}
+.roster td button.off{background:var(--soft);color:var(--mut);border-style:dashed}
+.roster td button.ex{border-color:var(--brand);color:var(--brand2);font-weight:600}
+.roster th.we{color:var(--ink)}.roster th.sel{background:var(--soft)}
+.roster small{display:block;color:var(--mut);font-size:12px;font-weight:400}
+.gantt{display:grid;grid-template-columns:8em minmax(0,1fr) auto;gap:4px 10px;align-items:center;font-size:13.5px}
+.gantt .track{position:relative;height:20px;background:var(--soft);border-radius:4px}
+.gantt .bar{position:absolute;top:0;bottom:0;border-radius:4px;color:#fff;font-size:11px;padding:0 6px;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.gantt .cov{position:absolute;top:0;bottom:0;border-right:1px solid var(--card);font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gantt .hrs{text-align:right;color:var(--mut);white-space:nowrap}
+.gantt small{display:block;color:var(--mut);font-size:12px}
+.axis{position:relative;height:18px;font-size:12px;color:var(--mut)}
+.axis span{position:absolute;transform:translateX(-50%)}
+.sample{font-size:12.5px;color:var(--mut);margin-top:8px}
+.modal{position:fixed;inset:0;background:rgba(10,14,18,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal[hidden]{display:none}
+.mcard{background:var(--card);border-radius:12px;padding:20px;width:min(100%,420px);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut);margin:10px 0}
+.fl input{width:100%}
+.mcard .full{width:100%;margin-top:8px}
+.or{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:13px;margin:14px 0 4px}.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+input[type=email],input[type=password]{min-height:44px;border-radius:7px;border:1px solid var(--line);background:var(--card);padding:0 10px}
+@media(max-width:700px){.gantt .cov{font-size:0}}
+@media(max-width:600px){table{font-size:12.5px}.clock{font-size:22px}.gantt{grid-template-columns:5.6em minmax(0,1fr) auto;gap:4px 8px;font-size:12.5px}.kpi:first-child{padding-left:14px}.kpi{padding-left:14px}}
+</style>
+</head>
+<body>
+<header class="band top">
+ <div class="wrap">
+  <div class="tophead"><div class="brandmark"><i aria-hidden="true"></i><h1 data-i="title"></h1></div><div style="display:flex;gap:8px;flex:none"><button id="acct" hidden></button><button class="lang" id="lang">English</button></div></div>
+  <p data-i="sub"></p>
+  <span class="scope" id="scope"></span> <span class="scope" id="sync"></span>
+  <div class="kpis" id="kpis"></div>
+ </div>
+</header>
+<div id="authBox" class="modal" hidden><div class="mcard" role="dialog" aria-modal="true" aria-labelledby="authT">
+ <div class="rhead"><h2 id="authT" data-i="auTitle"></h2><button id="auClose" aria-label="×">×</button></div>
+ <div id="auOut">
+  <form id="auForm">
+   <div class="seg" id="auMode" style="margin-top:6px"><button type="button" data-m="login" class="on" data-i="auLogin"></button><button type="button" data-m="signup" data-i="auSignup"></button></div>
+   <label class="fl">Email<input type="email" id="auEmail" required autocomplete="email"></label>
+   <label class="fl"><span data-i="auPw"></span><input type="password" id="auPw" required minlength="8" autocomplete="current-password"></label>
+   <button class="pri full" type="submit" id="auGo"></button>
+   <button class="full" type="button" id="auForgot" data-i="auForgot"></button>
+  </form>
+  <div class="or" data-i="auOr"></div>
+  <button class="full" type="button" id="auGoogle" data-i="auGoogle"></button>
+ </div>
+ <div id="auIn" hidden><p id="auWho" style="margin:10px 0"></p><button class="full" id="auLogout" data-i="auLogout"></button></div>
+ <div id="auReset" hidden><label class="fl"><span data-i="auNewPw"></span><input type="password" id="auNew" minlength="8" autocomplete="new-password"></label><button class="pri full" id="auSetPw" data-i="auSetPw"></button></div>
+ <p class="note" id="auMsg" role="status"></p>
+ <p class="note" data-i="auNote"></p>
+</div></div>
+
+<section class="band">
+ <div class="wrap main">
+  <div class="stage">
+   <div class="hud">
+    <span class="clock" id="clock">18:00</span>
+    <span class="badge" id="lvBadge"></span>
+    <span class="chip" id="hudDay"></span>
+    <span class="chip" id="hudSeat"></span><span class="chip" id="hudTab"></span>
+    <span class="chip" id="hudQ"></span>
+    <span class="chip" id="hudMode" data-i="editing" hidden></span>
+    <button class="sm" id="heat" data-i="heat"></button>
+   </div>
+   <div class="cvbox" id="cvbox"><canvas id="cv"></canvas></div>
+   <div class="ctrl">
+    <input type="range" id="tl" data-ia="time">
+    <button class="pri" id="play"></button>
+    <div class="seg" id="speed"><button data-v="2">1×</button><button data-v="6" class="on">3×</button><button data-v="20">10×</button><button data-v="90">45×</button></div>
+    <button class="ff" id="skip" data-i="skip"></button>
+   </div>
+   <div class="cvlegend"><span><i style="background:#0b5d63"></i><span data-i="lgDining"></span></span><span><i style="background:#c9c3b8"></i><span data-i="lgDirty"></span></span><span><svg width="12" height="12" viewBox="-6 -6 12 12" style="margin-right:5px;vertical-align:-1px" aria-hidden="true"><circle cy="-2.6" r="2.7" fill="#c2483b"/><path d="M-4.6 5.4V3.6A4.6 3.6 0 0 1 4.6 3.6V5.4Z" fill="#c2483b"/></svg><span data-i="lgWaiting"></span></span><span><i style="background:#15181c"></i><span data-i="lgStaff"></span></span></div>
+   <div class="sample" data-i="sample"></div>
+  </div>
+
+  <div class="panel">
+   <div class="tabs" role="tablist">
+    <button class="on" data-tab="flow" data-i="tFlow"></button>
+    <button data-tab="menu" data-i="tMenu"></button>
+    <button data-tab="book" data-i="tBook"></button>
+    <button data-tab="staff" data-i="tStaff"></button>
+    <button data-tab="cost" data-i="tCost"></button>
+    <button data-tab="extra" data-i="tExtra"></button>
+    <button data-tab="layout" data-i="tLayout"></button>
+   </div>
+
+   <div class="pane on" id="p-flow">
+    <div class="row"><label for="date" data-i="date"></label><input type="date" id="date"><span class="unit" id="dayName"></span></div>
+    <div class="row"><label data-i="range"></label><div class="seg" id="range"><button data-r="day" data-i="rDay"></button><button data-r="week" data-i="rWeek"></button><button data-r="month" data-i="rMonth"></button></div></div>
+    <div class="row"><label data-i="hours"></label><input type="time" id="open" data-ia="open"><span class="unit" data-i="to"></span><input type="time" id="close" data-ia="close"></div>
+    <div class="row"><label for="slot" data-i="slotLen"></label><select id="slot"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></div>
+    <h3 data-i="scenEditH"></h3>
+    <div class="seg lv" id="scenSeg"><button data-sc="low">LOW</button><button data-sc="mod">MODERATE</button><button data-sc="busy">BUSY</button></div>
+    <p class="note" data-i="scenEditNote"></p>
+    <div class="seg" id="emode"><button data-m="traffic" class="on" data-i="emTraffic"></button><button data-m="hours" data-i="emHours"></button></div>
+    <div id="trafficTools">
+     <div class="seg" id="presets" style="margin-top:10px">
+      <button data-p="weekday" data-i="pWeekday"></button><button data-p="weekend" data-i="pWeekend"></button><button data-p="quiet" data-i="pQuiet"></button>
+      <button data-all="low" data-i="allLow"></button><button data-all="mod" data-i="allMod"></button><button data-all="busy" data-i="allBusy"></button>
+     </div>
+    </div>
+    <p class="note" id="slotNote"></p>
+    <div class="slots" id="slots"></div>
+   </div>
+
+   <div class="pane" id="p-menu">
+    <h3 data-i="typeH"></h3>
+    <div class="seg" id="types"><button data-t="cha" data-i="tyCha"></button><button data-t="casual" data-i="tyCasual"></button><button data-t="fine" data-i="tyFine"></button><button data-t="custom" data-i="tyCustom" disabled></button></div>
+    <h3 data-i="opsH"></h3>
+    <p class="note" id="opsNote"></p>
+    <div class="row"><label data-i="opWalk"></label><input type="number" data-k="ops.walk" min="0" max="100"><span class="unit" data-i="opWalkU"></span></div>
+    <div class="row"><label data-i="opTol"></label><input type="number" data-k="ops.tol" min="0" max="120"><span class="unit" data-i="opTolU"></span></div>
+    <div class="row"><label data-i="opBalkQ"></label><input type="number" data-k="ops.balkQ" min="0" max="300"><span class="unit" data-i="opBalkQU"></span></div>
+    <div class="row"><label data-i="opBalkP"></label><input type="number" data-k="ops.balkP" min="0" max="100"><span class="unit">%</span></div>
+    <div class="row"><label data-i="opSolo"></label><input type="number" data-k="ops.solo" min="0" max="90"><span class="unit">%</span></div>
+    <label class="toggle"><input type="checkbox" data-k="ops.share"><span><b data-i="opShare"></b><small data-i="opShareN"></small></span></label>
+    <label class="toggle"><input type="checkbox" data-k="ops.strict"><span><b data-i="opStrict"></b><small data-i="opStrictN"></small></span></label>
+    <h3 data-i="menuH"></h3>
+    <p class="note" data-i="menuNote"></p>
+    <div id="menus"></div>
+    <button id="addMenu" data-i="addMenu"></button>
+    <ul id="menuStats" class="note" style="padding-left:18px"></ul>
+    <h3 data-i="resetH"></h3>
+    <div class="row"><label data-i="resetL"></label><input type="number" data-k="reset" min="0" max="60"><span class="unit" data-i="minU"></span></div>
+    <p class="note" data-i="resetNote"></p>
+    <h3 data-i="dwellH"></h3>
+    <div class="row"><label data-i="spread"></label><input type="number" data-k="menu.spread" min="0" max="80"><span class="unit">%</span></div>
+    <div class="row"><label data-i="linger"></label><input type="number" data-k="menu.lingerPct" min="0" max="100"><span class="unit" data-i="lingerU1"></span><input type="number" data-k="menu.lingerMin" min="0" max="180"><span class="unit" data-i="minU"></span></div>
+    <div class="hist" id="hist"></div><div class="histx" id="histx"></div>
+    <p class="note" id="dwellNote"></p>
+    <label class="toggle"><input type="checkbox" data-k="combine"><span><b data-i="combine"></b><small data-i="combineNote"></small></span></label>
+   </div>
+
+   <div class="pane" id="p-book">
+    <h3 data-i="autoH"></h3>
+    <label class="toggle"><input type="checkbox" data-k="auto.on"><span><b data-i="autoOn"></b><small data-i="autoNote"></small></span></label>
+    <div class="adays" id="adays"></div>
+    <div class="row"><label data-i="autoSize"></label><input type="number" data-k="auto.min" min="1" max="20" data-ia="autoMin"><span class="unit" data-i="to"></span><input type="number" data-k="auto.max" min="1" max="30" data-ia="autoMax"><span class="unit" data-i="ppl"></span></div>
+    <h3 data-i="apH"></h3>
+    <p class="note" data-i="apNote"></p>
+    <div id="autoPeriods"></div>
+    <button id="addPeriod" data-i="apAdd"></button>
+    <p class="note" id="autoSum"></p>
+    <h3 data-i="addBook"></h3>
+    <form id="bform">
+     <div class="row"><label for="bname" data-i="name"></label><input type="text" id="bname" required style="flex:1"></div>
+     <div class="row"><label for="bdate" data-i="bDate"></label><input type="date" id="bdate" required></div>
+     <div class="row"><label for="btime" data-i="time"></label><input type="time" id="btime" required value="19:00"><input type="number" id="bsize" min="1" max="40" value="4" data-ia="size"><span class="unit" data-i="ppl"></span></div>
+     <div class="row"><label for="bmenu" data-i="bMenu"></label><select id="bmenu"></select></div>
+     <button class="pri" type="submit" data-i="add"></button> <button type="button" id="ics" data-i="copyIcs"></button> <span class="unit" id="icsMsg"></span>
+    </form>
+    <ul class="blist" id="blist"></ul>
+    <h3 data-i="waitH"></h3>
+    <form id="wform" class="row"><input type="text" id="wname" required style="flex:1 1 140px" data-ip="name"><input type="number" id="wsize" min="1" max="20" value="2" data-ia="size"><button class="pri" type="submit" data-i="addWait"></button></form>
+    <p class="note" data-i="waitNote"></p>
+    <ul class="blist" id="wlist"></ul>
+   </div>
+
+   <div class="pane" id="p-staff">
+    <h3 data-i="kMode"></h3>
+    <div class="seg" id="kmode"><button data-k="western" data-i="kWest"></button><button data-k="chinese" data-i="kChi"></button></div>
+    <h3 data-i="staffH"></h3>
+    <div class="row"><label data-i="cps"></label><input type="number" data-k="cps" min="2" max="40"><span class="unit" data-i="guestsU"></span></div>
+    <div class="row"><label data-i="cookRate"></label><input type="number" data-k="cookRate" min="5" max="200"><span class="unit" data-i="portionHr"></span></div>
+    <p class="note" data-i="staffNote"></p>
+    <div id="staffList"></div>
+    <button id="addStaff" data-i="addStaff"></button>
+    <div class="rec" id="rec"></div>
+   </div>
+
+   <div class="pane" id="p-cost">
+    <h3 data-i="costH"></h3>
+    <p class="note" data-i="costNote"></p>
+    <div id="costList"></div>
+    <button id="addCost" data-i="addCost"></button>
+    <h3 data-i="investH"></h3>
+    <div class="row"><label data-i="invest"></label><input type="number" data-k="invest" min="0" step="1000" style="width:130px"><span class="unit">CAD</span></div>
+    <p class="note" data-i="investNote"></p>
+   </div>
+
+   <div class="pane" id="p-extra">
+    <h3 data-i="envH"></h3>
+    <div class="row"><label data-i="weather"></label><select data-k="weather"><option value="sun" data-i="wSun"></option><option value="cloud" data-i="wCloud"></option><option value="rain" data-i="wRain"></option><option value="snow" data-i="wSnow"></option></select></div>
+    <div class="row"><label data-i="holiday"></label><select data-k="holiday"><option value="none" data-i="hNone"></option><option value="long" data-i="hLong"></option><option value="stat" data-i="hStat"></option><option value="eve" data-i="hEve"></option><option value="special" data-i="hSpecial"></option></select></div>
+    <label class="toggle"><input type="checkbox" data-k="event.on"><span><b data-i="event"></b><small data-i="eventNote"></small></span></label>
+    <div class="row"><label data-i="eventEnd"></label><input type="time" data-k="event.end"><input type="number" data-k="event.boost" min="0" max="300"><span class="unit" data-i="boostU"></span></div>
+    <h3 data-i="bookRulesH"></h3>
+    <div class="row"><label data-i="noShow"></label><input type="number" data-k="noShow" min="0" max="80"><span class="unit">%</span></div>
+    <div class="row"><label data-i="late"></label><input type="number" data-k="lateMax" min="0" max="60"><span class="unit" data-i="minU"></span></div>
+    <div class="row"><label data-i="hold"></label><input type="number" data-k="hold" min="0" max="90"><span class="unit" data-i="holdU"></span></div>
+    <h3 data-i="toH"></h3>
+    <div class="row"><label data-i="toPerHr"></label><input type="number" data-k="takeout.perHour" min="0" max="200"><span class="unit" data-i="toPerHrU"></span></div>
+    <div class="row"><label data-i="toPortions"></label><input type="number" data-k="takeout.portions" min="0.5" max="20" step="0.5"><span class="unit" data-i="portionU2"></span></div>
+    <div class="row"><label data-i="toTicket"></label><input type="number" data-k="takeout.ticket" min="0"><span class="unit">CAD</span></div>
+    <h3 data-i="posH"></h3>
+    <p class="note" data-i="posNote"></p>
+    <textarea id="posText" data-ip="posPh"></textarea>
+    <div class="row" style="margin-top:8px"><input type="file" id="posFile" accept=".csv,text/csv,text/plain" data-ia="posH"><button class="pri" id="posApply" data-i="posApply"></button><button id="posClear" data-i="posClear"></button></div>
+    <p class="note" id="posMsg"></p>
+    <h3 data-i="bkH"></h3>
+    <p class="note" data-i="bkNote"></p>
+    <div class="row"><button id="bkCopy" data-i="bkCopy"></button><button id="bkFile" data-i="bkFile"></button></div>
+    <textarea id="bkText" data-ip="bkPh"></textarea>
+    <div class="row" style="margin-top:8px"><input type="file" id="bkIn" accept=".json,application/json,text/plain" data-ia="bkH"><button class="pri" id="bkApply" data-i="bkApply"></button></div>
+    <p class="note" id="bkMsg"></p>
+   </div>
+
+   <div class="pane" id="p-layout">
+    <h3 data-i="planH"></h3>
+    <div class="row"><input type="file" id="file" accept="image/*" data-ia="planH"></div>
+    <div class="row"><label data-i="opacity"></label><input type="range" id="bgop" min="0.1" max="1" step="0.05" style="flex:1"><button id="bgclear" data-i="removeImg"></button></div>
+    <p class="note" data-i="layoutNote"></p>
+    <div class="row"><button class="pri" id="edit"></button></div>
+    <div class="seg" id="palette"><button data-sh="" class="on" data-i="move"></button><button data-sh="round"></button><button data-sh="oval"></button><button data-sh="square"></button><button data-sh="rect"></button><button data-sh="booth"></button><button data-sh="pillar"></button></div>
+    <div id="tEdit" class="rec" hidden>
+     <b data-i="selH"></b>
+     <div class="seg" id="tShape" style="margin:8px 0"><button data-sh="round" data-i="shRound"></button><button data-sh="oval" data-i="shOval"></button><button data-sh="square" data-i="shSquare"></button><button data-sh="rect" data-i="shRect"></button><button data-sh="booth" data-i="shBooth"></button></div>
+     <div class="row"><label data-i="seatsL2"></label><button id="sMinus" aria-label="−">−</button><b id="sNum" style="font:600 20px Inter,sans-serif;min-width:2ch;text-align:center">4</b><button id="sPlus" aria-label="+">＋</button><button id="tRot" data-i="rotate"></button></div>
+     <div class="row"><label data-i="tSize"></label><button id="zMinus" aria-label="−">−</button><b id="zNum" style="font:600 18px Inter,sans-serif;min-width:4ch;text-align:center">100%</b><button id="zPlus" aria-label="+">＋</button><button id="del" data-i="delT"></button></div>
+    </div>
+    <div id="pEdit" class="rec" hidden>
+     <b data-i="pSel"></b>
+     <div class="seg" id="pShape" style="margin:8px 0"><button data-ps="sq" data-i="pSq"></button><button data-ps="round" data-i="pRound"></button></div>
+     <div class="row"><label data-i="tSize"></label><button id="pzMinus" aria-label="−">−</button><b id="pzNum" style="font:600 18px Inter,sans-serif;min-width:3ch;text-align:center">22</b><button id="pzPlus" aria-label="+">＋</button><button id="pDel" data-i="pDel"></button></div>
+    </div>
+    <h3 data-i="capL2"></h3>
+    <div class="row"><input type="number" data-k="maxCap" min="0" max="2000" style="width:100px" data-ia="capL2"><span class="unit" data-i="capU"></span></div>
+    <p class="note" data-i="capNote"></p>
+    <p class="note" id="seatInfo"></p>
+    <div class="row"><button id="clearT" data-i="clearT"></button><button id="reset" data-i="resetDemo"></button></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section class="band" id="results" style="padding-top:0">
+ <div class="wrap">
+  <h2 data-i="compH"></h2>
+  <p class="note" data-i="compNote"></p>
+  <div class="row" style="margin:4px 0 8px"><button class="pri" id="expPdf" data-i="expPdf"></button><button id="expXlsx" data-i="expXlsx"></button><span class="unit" id="expMsg"></span></div>
+  <div class="cards" id="cards"></div>
+  <div class="report" id="report">
+   <div class="rhead"><div><h2 data-i="repH"></h2><p class="note" id="repMeta" style="margin:2px 0 0"></p></div><div class="score" id="repScore"></div></div>
+   <div class="rmet" id="repMet"></div>
+   <h3 class="sub" style="margin-top:0" data-i="repFind"></h3>
+   <ul class="find" id="repFind"></ul>
+   <h3 class="sub" data-i="repRec"></h3>
+   <p class="note" data-i="repRecNote"></p>
+   <div class="scroll"><table class="recs" id="repRec"></table></div>
+   <div class="row" style="margin-top:14px"><button id="repCopy" data-i="repCopy"></button><span class="unit" id="repMsg"></span></div>
+  </div>
+  <div class="report" id="pnl" style="margin-top:12px">
+   <div class="rhead"><div><h2 data-i="pnlH"></h2><p class="note" id="pnlMeta" style="margin:2px 0 0"></p></div><div class="seg" id="pnlView"><button data-v="day" data-i="pvDay"></button><button data-v="week" data-i="pvWeek"></button><button data-v="month" data-i="pvMonth"></button></div></div>
+   <div class="cards" id="beCards"></div>
+   <div class="scroll"><table id="pnlTbl"></table></div>
+   <h3 class="sub" data-i="payH"></h3>
+   <p class="note" id="payNote"></p>
+   <div class="fig" style="min-height:240px"><svg id="payChart" role="img"></svg></div>
+  </div>
+  <div id="dailyBox">
+   <h3 class="sub" data-i="dailyH"></h3>
+   <p class="note" data-i="dailyNote"></p>
+   <div class="legend"><span><i style="background:var(--low)"></i>LOW</span><span><i style="background:var(--mod)"></i>MODERATE</span><span><i style="background:var(--busy)"></i>BUSY</span><span data-i="dLegend"></span></div>
+   <div class="fig" style="min-height:260px"><svg id="dchart" role="img"></svg></div>
+   <div class="scroll" style="margin-top:12px;max-height:420px;overflow:auto"><table id="dtbl"></table></div>
+  </div>
+  <h3 class="sub" id="chartTitle"></h3>
+  <div class="legend">
+   <span><i style="background:var(--low)"></i><span data-i="lgLow"></span></span><span><i style="background:var(--mod)"></i><span data-i="lgMod"></span></span><span><i style="background:var(--busy)"></i><span data-i="lgBusy"></span></span><span><i style="background:var(--off)"></i><span data-i="lgClosed"></span></span><span><i style="background:repeating-linear-gradient(45deg,#c2483b66 0 3px,transparent 3px 6px)"></i><span data-i="lgQ"></span></span><span data-i="lgTop"></span>
+  </div>
+  <div class="fig"><svg id="chart" role="img"></svg></div>
+  <div class="scroll" style="margin-top:14px"><table id="tbl"></table></div>
+ </div>
+</section>
+
+<section class="band" style="background:var(--soft)">
+ <div class="wrap">
+  <h2 data-i="rosterH"></h2>
+  <p class="note" data-i="rosterNote"></p>
+  <div class="scroll"><table class="roster" id="roster"></table></div>
+  <h3 class="sub" id="dayRosterH"></h3>
+  <p class="note" data-i="covNote"></p>
+  <div class="gantt" id="gantt"></div>
+  <p class="note" id="labNote" style="margin-top:12px"></p>
+ </div>
+</section>
+
+<section class="band">
+ <div class="wrap">
+  <h2 data-i="savedH"></h2>
+  <p class="note" data-i="savedNote"></p>
+  <form id="sform" class="row"><input type="text" id="sname" style="flex:1 1 160px" data-ip="savedPh"><button class="pri" type="submit" data-i="savedSave"></button></form>
+  <div class="scroll"><table id="scen"></table></div>
+ </div>
+</section>
+
+<script>
+{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const W=800,H=520,KEY='dinnerrush-v3',WALK=1.5;
+const STR={
+title:['DinnerRush','DinnerRush'],
+sub:['餐廳人流預測：擺枱、設定菜單、編更，再揀一日、一星期或者一個月，同時睇 LOW / MODERATE / BUSY 三個情景。','Restaurant flow forecast: set tables, menus and shifts, pick a day, week or month, and compare LOW / MODERATE / BUSY side by side.'],
+scope:['{0} · 而家睇 {1} 情景','{0} · showing the {1} scenario'],
+editing:['編輯版面中','Editing layout'],heat:['熱點圖','Heatmap'],heatOff:['關熱點圖','Hide heatmap'],time:['時間','Time'],
+play:['▶ 播放','▶ Play'],pause:['❚❚ 暫停','❚❚ Pause'],skip:['⏭ 直接出結果','⏭ Jump to result'],
+sample:['示範數據：枱位、員工、Booking 同人流係假設，請換成你餐廳嘅數字。','Sample data: tables, staff, bookings and traffic are made up — swap in your own.'],
+tFlow:['時段人流','Traffic'],tMenu:['菜單','Menu'],tBook:['Booking','Bookings'],tStaff:['員工','Staff'],tExtra:['更多因素','Factors'],tLayout:['版面','Layout'],
+date:['開始日期','Start date'],range:['預測範圍','Forecast range'],rDay:['一日','1 day'],rWeek:['一星期','1 week'],rMonth:['一個月','1 month'],
+hours:['營業時間','Opening hours'],to:['至','to'],open:['開門','Open'],close:['關門','Close'],slotLen:['時段長度','Slot length'],
+scenEditH:['三個情景嘅人流','Traffic for the three scenarios'],scenEditNote:['揀一個情景，再逐個時段改 LOW / MODERATE / BUSY。三個情景每次都會一齊計，下面會並排比較。上面個畫面播緊嘅就係你揀嘅情景。','Pick a scenario, then set each slot to LOW / MODERATE / BUSY. All three are always calculated and compared below; the floor above plays the one you pick.'],
+emTraffic:['改人流','Edit traffic'],emHours:['改營業時段','Edit opening'],
+pWeekday:['平日','Weekday'],pWeekend:['週末','Weekend'],pQuiet:['淡季','Quiet season'],allLow:['全部 LOW','All LOW'],allMod:['全部 MODERATE','All MODERATE'],allBusy:['全部 BUSY','All BUSY'],
+slotNoteT:['撳格仔轉 LOW → MODERATE → BUSY（大約填滿 30% / 60% / 90% 枱位嘅來客量）。百分比係呢個情景喺 {0} 嘅模擬坐用率；POS = 用緊匯入數據。','Tap to cycle LOW → MODERATE → BUSY (enough walk-ins to fill about 30% / 60% / 90% of tables). % is this scenario’s simulated occupancy on {0}; POS = imported data.'],
+slotNoteH:['撳格仔設定休息時段（例如落場），休息時唔會入新客，三個情景都一樣。','Tap slots to mark breaks (e.g. afternoon close). No new guests are seated then, in every scenario.'],
+closedS:['休息','Closed'],
+typeH:['餐廳類型','Restaurant type'],tyCha:['茶餐廳','Café (cha chaan teng)'],tyCasual:['一般西餐','Casual dining'],tyFine:['Fine dining','Fine dining'],tyCustom:['自訂','Custom'],
+opsH:['營運模式（人流行為）','Operating model (guest behaviour)'],
+opCha:['茶餐廳：差唔多全部係 walk-in，Booking 好少；客人肯排隊但唔會等好耐，單人客多，搭枱、翻枱快。','Café: almost all walk-ins, very few bookings; guests queue but won’t wait long, many solo diners, fast turnover.'],
+opCasual:['一般西餐：walk-in 為主，有部分 Booking；繁忙時段會排隊，等太耐會走。','Casual dining: mostly walk-ins with some bookings; queues at peak, people leave if the wait gets long.'],
+opFine:['Fine dining：大部分係 Booking，walk-in 好少；冇位嘅話客人多數即刻走或者只等幾分鐘，好少大排長龍。','Fine dining: mostly bookings, few walk-ins; without a table most walk-ins leave or wait a few minutes — long queues are rare.'],
+opCustom:['你自己調過呢啲數。撳上面一個類型可以還原預設。','You have adjusted these. Tap a type above to restore its defaults.'],
+opWalk:['Walk-in 人流','Walk-in traffic'],opWalkU:['%（其餘靠 Booking）','% (the rest comes from bookings)'],opTol:['客人最多肯等','Max wait guests accept'],opTolU:['分鐘','min'],
+opShare:['搭枱','Table sharing'],opShareN:['walk-in 可以同陌生人坐同一張枱，坐滿凳為止。茶記預設開。','Walk-ins may sit with strangers until the chairs are full. On by default for cafés.'],opStrict:['嚴格留枱','Strict booking holds'],opStrictN:['如果 walk-in 食完之前 Booking 客就到，唔俾 walk-in 坐嗰張枱。Fine dining 預設開；閂咗就只會喺「預早留枱」嘅分鐘數內留枱。','A walk-in is not seated at a table a booking needs before they would finish. On by default for fine dining; off means tables are only held for the “Hold table” minutes.'],opBalkQ:['門口排到','Queue length'],opBalkQU:['% 枱數就開始有人唔排','% of table count before people stop joining'],opBalkP:['見到要排隊轉頭走','Leave when they see a queue'],opSolo:['單人客','Solo diners'],
+menuH:['菜單同用餐時間','Menus and dining time'],menuNote:['每個菜單自己填：用餐時間（入座至埋單）、每位幾多份、價錢、幾多 % 客人揀、幾點至幾點有得點。下面會顯示實際平均坐幾耐；比設定長好多通常係人手唔夠。','Fill in each menu: dining time (seated to paid), portions per guest, price, share of guests, and the hours it is served. Below you’ll see how long tables actually stayed; much longer than set usually means too few staff.'],
+addMenu:['＋ 新增菜單','＋ Add menu'],mName:['菜單名','Menu name'],mDur:['用餐時間（分鐘）','Dining time (min)'],mPort:['每位幾多份','Portions / guest'],mPrice:['每位價錢 CAD','Price / guest CAD'],mShare:['揀呢個嘅 %','Share of guests %'],mWin:['供應時間','Served'],mDel:['刪除','Delete'],newMenu:['新菜單','New menu'],
+mStat:['{0}：{1} 枱，平均坐 {2} 分鐘（設定 {3}）','{0}: {1} tables, stayed {2} min on average (set {3})'],mStatNone:['{0}：今次模擬冇人揀','{0}: nobody ordered it in this run'],
+resetH:['翻枱間距','Table turnover gap'],resetL:['清枱 + 擺枱','Clear and reset'],resetNote:['客人走咗之後要幾耐先可以坐下一枱。茶記大約 2 分鐘；fine dining 換枱布、擺餐具可能要 15–20 分鐘。冇執枱當值嗰陣會長 60%。','Minutes before the next party can sit after one leaves. About 2 for a café; 15–20 for fine dining with linen and full resets. 60% longer when no busser is on shift.'],
+minU:['分鐘','min'],dwellH:['停留時間差異','Dwell-time variation'],spread:['快慢差異','Speed spread'],linger:['坐耐客','Lingerers'],lingerU1:['% 會多坐','% stay an extra'],
+dwellNote:['{0} 實際坐咗幾耐：平均 {1} 分鐘，最快 10% 少過 {2} 分鐘，最慢 10% 多過 {3} 分鐘。','How long parties actually stayed on {0}: average {1} min, fastest 10% under {2}, slowest 10% over {3}.'],
+combine:['容許拼枱','Allow combining tables'],combineNote:['茶餐廳搭枱、大枱 Booking 拼細枱。Fine dining 通常閂咗佢。','Shared tables or joining small tables for big parties. Usually off for fine dining.'],
+addBook:['新增 Booking','New booking'],name:['名','Name'],bDate:['日期','Date'],time:['時間','Time'],ppl:['位','guests'],size:['人數','Party size'],add:['加入','Add'],bMenu:['菜單','Menu'],anyMenu:['未定 / 跟比例','Not set / by share'],
+copyIcs:['複製全部去日曆 (.ics)','Copy all as calendar (.ics)'],copied:['已複製，貼入 .ics 檔再匯入 Google Calendar。','Copied — paste into a .ics file and import to Google Calendar.'],copyFail:['複製唔到，請再試。','Copy failed, try again.'],
+noBook:['未有 Booking。','No bookings yet.'],cal:['加入日曆','Add to Calendar'],
+wNoFit:['冇枱夠大，要開拼枱或者加大枱','No table big enough — allow combining or add a bigger table'],wHours:['唔喺營業時間','Outside opening hours'],wClosed:['嗰陣係休息時段','Falls in a break'],wWait:['預計要等 {0} 分鐘','Expected wait {0} min'],wNoShow:['模擬中呢枱甩底','Simulated as a no-show'],wCombo:['需要拼枱','Needs combined tables'],wOk:['有枱，準時入座','Table ready on time'],
+waitH:['等位名單','Waitlist'],addWait:['加入等位','Add to waitlist'],waitNote:['預計等候時間跟住畫面上嘅日子、時間同排隊情況計。','Quoted wait uses the day and time on screen and the current queue.'],
+quote:['預計 {0} 分鐘','Quote {0} min'],call:['叫號','Call'],calledAt:['已叫 {0}','Called {0}'],noWait:['冇人等位。','Nobody waiting.'],
+kMode:['廚房模式','Kitchen style'],kWest:['西餐：主廚 / 副廚 / 廚師 / 助手','Western: head / sous / line / commis'],kChi:['中式・茶記：大廚 / 二廚 / 炒鑊 / 打雜','Chinese / café: head / second / wok / helper'],
+staffH:['員工','Staff'],cps:['每個侍應顧','Each server covers'],guestsU:['位客（速度 100%）','guests (at 100% speed)'],cookRate:['每個廚師每小時','Each cook makes'],portionHr:['份（速度 100%）','portions / hour (at 100%)'],
+staffNote:['每人填名、職位、速度（100% = 一般水平，主廚快啲、助手慢啲）、時薪、返工時間（可以分兩更）同逢星期幾放假。個別日子請假或者加更，喺下面排更表撳格仔。','Set each person’s name, role, speed (100% = typical; head chefs faster, commis slower), wage, shifts (up to two) and regular days off. For one-off leave or extra shifts, tap the roster below.'],
+role:['職位','Role'],speedL:['速度 %','Speed %'],pWage:['時薪 CAD','Wage CAD'],shift1:['第一更','Shift 1'],shift2:['第二更（可留空）','Shift 2 (optional)'],offH:['逢星期幾放假','Regular days off'],addStaff:['＋ 新增員工','＋ Add staff'],newStaff:['新同事','New staff'],sDel:['刪除','Delete'],
+recH:['{0} · {1} 情景建議','Advice for {0} · {1}'],rShortF:['樓面唔夠人：{0}','Floor short: {0}'],rShortK:['廚房唔夠人：{0}','Kitchen short: {0}'],rNeed:['{0}（需要 {1}，編咗 {2}）','{0} (need {1}, have {2})'],
+rHost:['冇帶位當值嘅時段，帶位會慢啲、排隊長啲。','When no host is on, seating is slower and queues grow.'],rBusser:['冇執枱當值時，翻枱間距由 {0} 變 {1} 分鐘。','With no busser on, the turnover gap goes from {0} to {1} min.'],
+rLost:['預計有 <b>{0}</b> 位客等唔切走咗，約 CAD {1} 生意。','About <b>{0}</b> guests walk away — roughly CAD {1} in sales.'],rFine:['人手同座位都夠應付呢個預測。','Staff and seats cover this forecast.'],
+rRev:['營業額 <b>CAD {0}</b>（外賣 {1} 單）· 當日人工 CAD {2}（{3}%）','Sales <b>CAD {0}</b> ({1} takeout orders) · labour that day CAD {2} ({3}%)'],
+envH:['天氣、節日、活動','Weather, holidays, events'],weather:['天氣','Weather'],wSun:['晴天','Sunny'],wCloud:['陰天','Cloudy'],wRain:['落雨（-15%）','Rain (−15%)'],wSnow:['落雪（-30%）','Snow (−30%)'],
+holiday:['節日','Holiday'],hNone:['普通日子','Normal day'],hLong:['長週末（+10%）','Long weekend (+10%)'],hStat:['公眾假期（+15%）','Statutory holiday (+15%)'],hEve:['節日前夕（+30%）','Holiday eve (+30%)'],hSpecial:['情人節 / 母親節（+45%）','Valentine’s / Mother’s Day (+45%)'],
+event:['附近有活動','Nearby event'],eventNote:['演唱會、球賽散場後 90 分鐘湧入','Surge for 90 min after a concert or game lets out'],eventEnd:['散場時間','Event ends'],boostU:['% 多人','% more guests'],
+bookRulesH:['Booking 規則','Booking rules'],noShow:['甩底率','No-show rate'],late:['最遲遲到','Late by up to'],hold:['預早留枱','Hold table'],holdU:['分鐘（0 = 唔留）','min before (0 = off)'],
+toH:['外賣 / 外送','Takeout and delivery'],toPerHr:['繁忙時每小時','Orders per hour'],toPerHrU:['單（LOW 時約 40%）','at BUSY (about 40% at LOW)'],toPortions:['每單','Portions per order'],portionU2:['份','portions'],toTicket:['每單金額','Average order'],
+posH:['匯入 POS 數據','Import POS data'],posNote:['貼上或者揀 CSV，每行「時間,人數」，例如 18:15,6。真實來客量會用做 MODERATE，LOW 同 BUSY 分別按 70% 同 130% 計。','Paste or choose a CSV with one “time,guests” per line, e.g. 18:15,6. Real arrivals become MODERATE; LOW and BUSY use 70% and 130% of it.'],
+posPh:['11:30,4\n12:00,18\n12:15,22','11:30,4\n12:00,18\n12:15,22'],posApply:['套用數據','Apply data'],posClear:['清除匯入','Clear import'],posDone:['已套用 {0} 個時段。','Applied to {0} slots.'],posNone:['讀唔到資料，格式要係「時間,人數」。','Nothing read — use “time,guests” per line.'],posCleared:['已清除，返回用 LOW/MOD/BUSY。','Cleared — back to LOW/MOD/BUSY.'],
+planH:['平面圖','Floor plan'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
+editL:['編輯版面','Edit layout'],doneL:['完成編輯','Done editing'],delT:['刪除呢張枱','Delete table'],move:['選擇 / 拖動','Select / drag'],
+shPillar:['柱','Pillar'],pSel:['已選嘅柱','Selected pillar'],pSq:['方柱','Square'],pRound:['圓柱','Round'],pDel:['刪除呢條柱','Delete pillar'],shRound:['圓枱','Round'],shOval:['橢圓枱','Oval'],shSquare:['方枱','Square'],shRect:['長枱','Long'],shBooth:['卡位','Booth'],addSh:['＋{0}','+ {0}'],selH:['已選嘅枱','Selected table'],seatsL2:['凳數','Seats'],rotate:['轉 90°','Rotate 90°'],
+seatInfo:['而家有 {0} 張枱、{1} 個座位。','{0} tables, {1} seats.'],clearT:['清晒啲枱','Clear tables'],resetDemo:['還原示範','Restore sample'],
+kServed:['預計客人','Guests served'],kLost:['等唔切走咗','Walked away'],kPeak:['最忙','Busiest'],kWait:['最長等位','Longest wait'],kRev:['預計營業額','Projected sales'],kLab:['人工佔比','Labour %'],minS:['{0} 分鐘','{0} min'],
+seatC:['坐用 {0}/{1} 人','Seated {0}/{1}'],tabC:['枱 {0}/{1}','Tables {0}/{1}'],qC:['等位 {0} 人','Queue {0}'],closed:['已收工','Closed'],brk:['休息中','On break'],pred:['預測 {0}','Forecast {0}'],
+compH:['三個情景比較','Three scenarios compared'],compNote:['同一班人手、同一份菜單，分別喺 LOW / MODERATE / BUSY 人流下會點。撳一張卡，上面就播嗰個情景。','Same staff and menu under LOW, MODERATE and BUSY traffic. Tap a card to play that scenario above.'],
+cShort:['唔夠人時段','Short-staffed slots'],
+dailyH:['每日預測','Daily forecast'],dailyNote:['撳一日（圖或者表）就睇嗰日詳情同更表。','Tap a day (chart or table) to see its detail and shifts.'],dLegend:['柱 = 每日客人，加粗嗰日 = 而家睇緊','Bars = guests per day; outlined = day shown'],
+thDate:['日期','Date'],thStaffOn:['當值','On duty'],thServedSc:['{0} 客人','{0} guests'],thLostSc:['{0} 流失','{0} lost'],thRevSc:['{0} 營業額','{0} sales'],thShort:['唔夠人時段','Short slots'],thLab:['人工','Labour'],
+dayH:['{0} · {1} 情景：{2} 最忙，坐用約 {3}%','{0} · {1}: busiest at {2}, about {3}% full'],
+lgLow:['LOW 少於 40% 坐用','LOW under 40% full'],lgMod:['MODERATE 40–75%','MODERATE 40–75%'],lgBusy:['BUSY 75% 以上或排長龍','BUSY over 75% or long queue'],lgClosed:['休息','Closed'],lgQ:['等位人數','Queue'],lgTop:['頂部細條 = 你設定嘅人流','Top strip = your setting'],
+seatsL:['座位 {0}','Seats {0}'],capL:['樓面可顧','Floor can serve'],
+thSlot:['時段','Slot'],thSet:['設定','Setting'],thBook:['Booking','Bookings'],thArr:['到店人數','Arrivals'],thAvg:['平均坐用','Avg seated'],thQ:['最多等位','Max queue'],thWait:['平均等候','Avg wait'],thLost:['流失','Lost'],thPred:['預測','Forecast'],thNeed:['樓面 需要/編咗','Floor need/have'],thNeedK:['廚房 需要/編咗','Kitchen need/have'],
+rosterH:['排更表','Shift roster'],rosterNote:['由畫面上嗰日開始顯示 7 日。撳格仔可以將嗰日改做放假，或者喺佢平時放假嗰日加更。速度唔同會按比例計：60% 嘅助手大約等於半個廚師。','Seven days from the day shown. Tap a cell to give someone that day off, or add a shift on their usual day off. Speed counts proportionally: a 60% commis is about half a cook.'],
+off:['放假','Off'],extra:['加更','Extra'],
+dayRosterH:['{0} 更表同人手覆蓋（{1} 情景）','{0}: shifts and coverage ({1} scenario)'],covF:['樓面覆蓋','Floor cover'],covK:['廚房覆蓋','Kitchen cover'],
+covNote:['覆蓋列數字 = 需要 / 編咗（按速度計）。紅色 = 唔夠人，藍色 = 多過需要 2 人或以上，灰色 = 休息。','Coverage numbers = needed / scheduled (speed-weighted). Red = short, blue = 2+ more than needed, grey = closed.'],
+labNote:['當日排更人工 CAD {0}，{1} 情景營業額 CAD {2}，人工佔 {3}%。','Labour that day CAD {0}; {1}-scenario sales CAD {2}; labour {3}%.'],nobodyOn:['呢日冇人返工。','Nobody is working this day.'],
+hrsU:['{0} 小時','{0} h'],
+savedH:['自訂比較','Saved runs'],savedNote:['儲低而家嘅結果（而家揀緊嘅情景同範圍），改人手、菜單或者枱之後再比較。','Save the current result (selected scenario and range), change staff, menus or tables, then compare.'],savedPh:['例如 加多個副廚','e.g. one more sous chef'],savedSave:['儲存結果','Save result'],
+scenNow:['而家','Current'],sStaff:['員工人數','Staff count'],sType:['類型','Type'],sScope:['範圍','Range'],sSc:['情景','Scenario'],noScen:['未有儲存結果。','No saved runs.'],
+days:[['星期一','星期二','星期三','星期四','星期五','星期六','星期日'],['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']],
+dshort:[['一','二','三','四','五','六','日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']],
+syLocal:['只儲喺呢部機','Saved on this device only'],sySyncing:['同步緊…','Syncing…'],sySynced:['已同步 {0}','Synced {0}'],syErr:['同步失敗，資料仍然儲喺呢部機','Sync failed — data kept on this device'],
+bkH:['備份 / 搬資料','Backup and transfer'],bkNote:['喺 claude.ai 打開 DinnerRush，用同一個帳戶喺電腦同電話會自動同步。Netlify 版本就用呢度：喺一部機複製資料碼或者下載備份檔，再喺另一部機貼上或者揀檔案匯入。','Opened on claude.ai, DinnerRush syncs automatically between your devices on the same account. For the Netlify version, use this: copy the data code or download a backup on one device, then paste or choose the file on the other.'],
+bkCopy:['複製資料碼','Copy data code'],bkFile:['下載備份檔','Download backup'],bkPh:['將另一部機複製嘅資料碼貼喺度','Paste the data code from your other device'],bkApply:['匯入資料','Import data'],
+bkCopied:['已複製（平面圖相太大時唔包）。','Copied (floor-plan image left out if too large).'],bkDone:['已匯入。','Imported.'],bkBad:['讀唔到，請確認係 DinnerRush 嘅資料碼。','Could not read that — check it is a DinnerRush data code.'],bkDl:['如果冇開始下載，請用「複製資料碼」。','If nothing downloads, use “Copy data code”.'],
+expPdf:['下載 PDF 報告','Download PDF report'],wdL:['星期','Day'],expXlsx:['下載 Excel','Download Excel'],expWork:['整緊…','Preparing…'],expSaved:['已準備好 {0}','{0} ready'],expDecl:['已取消下載。','Download cancelled.'],expFail:['下載唔到：{0}','Could not download: {0}'],
+exTitle:['DinnerRush 營運報告','DinnerRush operations report'],exGen:['製作時間 {0}','Generated {0}'],exNote:['所有數字係模型估算，唔係保證。','All figures are model estimates, not guarantees.'],
+exSum:['摘要','Summary'],exScen:['情景','Scenario'],exMetric:['項目','Metric'],exProfit:['利潤（範圍內）','Profit (range)'],exFloor:['平面圖（最忙時段）','Floor plan (busiest time)'],exRoster:['排更表（7 日）','Shift roster (7 days)'],
+exWeekH:['一星期時數','Hours / week'],exWeekC:['一星期人工','Wages / week'],exStaff:['員工','Staff'],exRole:['職位','Role'],exSpeed:['速度','Speed'],exBook:['Booking','Bookings'],exAuto:['自動','Auto'],exManual:['手動','Manual'],exSource:['來源','Source'],
+exCosts:['成本設定','Cost settings'],exBE:['Break-even','Break-even'],exPay:['回本','Payback'],exInsight:['Insight','Insight'],exScore:['營運分數 {0} / 100（{1}）','Ops score {0} / 100 ({1})'],exSlots:['{0} 時段預測（{1}）','{0} slot forecast ({1})'],exDaily:['每日預測','Daily forecast'],exPnl:['盈虧（{0}）','Profit and loss ({0})'],
+auLoginBtn:['登入','Sign in'],auTitle:['DinnerRush 戶口','DinnerRush account'],auLogin:['登入','Sign in'],auSignup:['註冊','Create account'],auPw:['密碼（最少 8 個字）','Password (8+ characters)'],
+auGo:['登入','Sign in'],auGoSign:['建立戶口','Create account'],auForgot:['忘記密碼','Forgot password'],auOr:['或者','or'],auGoogle:['用 Google 登入','Continue with Google'],auLogout:['登出','Sign out'],
+auWho:['已登入：{0}。資料會喺你所有裝置同步。','Signed in as {0}. Your data syncs across your devices.'],auNewPw:['新密碼','New password'],auSetPw:['設定新密碼','Set new password'],
+auNote:['用 email 加密碼喺 app 入面登入最穩定；喺 iPhone 主畫面 app 用 Google 登入，可能會跳去 Safari。','Email and password works fully inside the app; Google sign-in may open Safari when used from the iPhone Home Screen app.'],
+auWait:['處理緊…','Working…'],auCheckMail:['已寄確認 email，撳入面條 link 之後就可以登入。','Check your email and tap the confirmation link, then sign in.'],auErr:['出錯：{0}','Error: {0}'],
+auNeedEmail:['請先填 email。','Enter your email first.'],auNoReset:['呢度未支援重設密碼，請聯絡管理員。','Password reset is not available here.'],auResetSent:['已寄重設密碼 email。','Password reset email sent.'],auPwDone:['新密碼已設定。','New password set.'],
+auLoggedOut:['已登出，呢部機已清除你嘅資料。','Signed out — your data was cleared from this device.'],syDenied:['呢個戶口未獲准使用，請聯絡管理員。','This account is not allowed — contact the admin.'],
+kitchen:['廚房','KITCHEN'],entrance:['入口','ENTRANCE'],tablesU:['{0}位','{0}'],
+lgDining:['用餐中（外圈 = 用餐進度）','Dining (ring = progress)'],lgDirty:['待清理','To reset'],lgWaiting:['等位客人（每個公仔一位）','Waiting guests (one per icon)'],lgStaff:['員工（顯示名首字）','Staff (initial)'],
+autoH:['每日 Booking 量','Daily booking volume'],autoOn:['自動加入預計 Booking','Add expected bookings'],autoNote:['逐日設定預計有幾多單，系統會按下面嘅時段比例分佈時間，加喺 walk-in 之上。下面嘅手動 Booking 會照計。LOW / BUSY 情景嘅預計 Booking 會少 30% / 多 25%。','Set how many bookings you expect each weekday; times are spread across the periods below and added on top of walk-ins. Manual bookings below still count. LOW / BUSY scenarios get 30% fewer / 25% more expected bookings.'],
+autoSize:['每枱人數','Party size'],autoMin:['最少','Minimum'],autoMax:['最多','Maximum'],apH:['Booking 時段分佈','Booking periods'],apNote:['每個時段填幾點至幾點，同埋佔幾多 %。加埋唔使啱啱 100，系統會按比例分；休息時段同營業時間以外唔會有 Booking。','Set each period’s hours and its share. Shares need not add to 100 — they are used as proportions. No bookings fall in breaks or outside opening hours.'],
+apName:['時段名','Period'],apWin:['時間','Hours'],apShare:['佔 %','Share %'],apAdd:['＋ 新增時段','＋ Add period'],newPeriod:['新時段','New period'],apPct:['實際約 {0}%','about {0}%'],
+capL2:['最高容客量','Max capacity'],capU:['人（0 = 唔限）','guests (0 = no limit)'],capNote:['例如消防或者牌照上限。到咗上限，就算有空凳都唔會再俾客入座；喺門口排隊嘅客人唔計。','e.g. a fire-code or licence limit. Once reached, nobody else is seated even with empty chairs; guests waiting at the door are not counted.'],
+seatInfoCap:['而家有 {0} 張枱、{1} 個座位，最高容客量 {2} 人。','{0} tables, {1} seats, max capacity {2} guests.'],capLine:['容客上限 {0}','Capacity limit {0}'],
+autoSum:['{0}：自動 Booking {1} 枱、{2} 位；成個範圍合共 {3} 枱、{4} 位。','{0}: {1} auto bookings, {2} guests; whole range {3} bookings, {4} guests.'],autoOff:['自動 Booking 已關。','Auto bookings are off.'],autoRej:['另外有 {0} 個預訂因為冇枱而接唔到（已試過早 / 遲 15–45 分鐘）。通常係時段太集中，或者兩輪之間嘅時間短過用餐時間。','{0} more booking requests were turned away for lack of a table (after trying 15–45 min earlier or later) — usually because periods are too packed or the gap between seatings is shorter than the meal.'],autoName:['預計 Booking','Expected booking'],
+tSize:['大細','Size'],tCost:['成本','Costs'],
+costH:['營運成本','Operating costs'],costNote:['每項自己填金額，再揀係每日、每星期、每月，定係營業額或者人工嘅百分比。人工會自動由排更表計，唔使再入。','Enter each cost and choose per day, week or month, or a % of sales or labour. Wages come from the roster automatically.'],
+addCost:['＋ 新增成本項目','＋ Add cost'],cName:['項目','Item'],cAmt:['金額 / %','Amount / %'],cUnit:['計法','Basis'],newCost:['新項目','New cost'],
+uDay:['每日','Per day'],uWeek:['每星期','Per week'],uMonth:['每月','Per month'],uPctS:['% 營業額','% of sales'],uPctL:['% 人工','% of wages'],
+investH:['開舖投資','Start-up investment'],invest:['投資總額','Total invested'],investNote:['裝修、廚房設備、按金、牌照等等一次過嘅錢，用嚟計幾耐回本。','Fit-out, kitchen equipment, deposits, licences and other one-off costs — used for the payback period.'],
+pnlH:['盈虧同回本','Profit, break-even and payback'],pnlMeta:['按 {0} 嘅預測平均，換算做 {1}','Averaged from {0}, shown {1}'],pvDay:['一日','Per day'],pvWeek:['一星期','Per week'],pvMonth:['一個月','Per month'],
+pvDayT:['每日','per day'],pvWeekT:['每星期','per week'],pvMonthT:['每月','per month'],
+plRev:['營業額','Sales'],plLab:['人工（排更）','Wages (roster)'],plTot:['總成本','Total costs'],plProfit:['利潤 / 虧損','Profit / loss'],plMargin:['利潤率','Margin'],
+beT:['每日要做到 <b>CAD {0}</b>（大約 {1} 位客）先 break even。','Break-even needs <b>CAD {0}</b> a day (about {1} guests).'],
+beAbove:['預計每日 CAD {0}，高過 break-even {1}','Forecast CAD {0}/day, {1} above break-even'],beBelow:['預計每日 CAD {0}，差 {1} 先 break even','Forecast CAD {0}/day, {1} short of break-even'],
+beNever:['變動成本已經等於或者超過營業額，點都 break 唔到 even。','Variable costs eat all sales — break-even is not reachable.'],
+payH:['幾耐回本','Payback period'],payNo:['唔會回本','No payback'],payIn:['{0} 個月回本','Pays back in {0} months'],payNever:['唔會回本（每月蝕 CAD {0}）','No payback (losing CAD {0} a month)'],payNoInv:['未填投資額。','No investment entered.'],
+payNote:['由開舖投資 CAD {0} 開始，按每個情景每月利潤累積。線過咗 0 就係回本。','Starting from CAD {0} invested, cumulative profit per scenario. Crossing zero is payback.'],monthsU:['{0} 個月','{0} mo'],
+fBE:['{0} 情景{1}，每月利潤約 CAD {2}。','{0} scenario: {1}, monthly profit about CAD {2}.'],fBEok:['做到 break even','above break-even'],fBEno:['未 break even','below break-even'],
+repH:['Insight 報告','Insight report'],and:['、','and'],repMeta:['{0} · {1} 情景 · 模型估算，唔係保證','{0} · {1} scenario · model estimates, not guarantees'],repScore:['營運分數','Ops score'],
+gGood:['良好','Healthy'],gOk:['一般','Fair'],gBad:['要改善','Needs work'],
+repFind:['主要發現','Key findings'],repRec:['建議（按淨效益排序）','Recommendations (ranked by net impact)'],
+repRecNote:['每項建議都用同一個範圍再模擬一次，計多咗或者少咗幾多客、營業額同人工。淨效益 = 營業額變化 − 人工變化。','Each recommendation is re-simulated over the same range: change in guests, sales and labour. Net = sales change − labour change.'],
+repCopy:['複製報告','Copy report'],repCopied:['已複製。','Copied.'],repWait:['分析緊…','Analysing…'],
+mService:['服務達成率','Service level'],mLostV:['流失生意','Lost sales'],mLabour:['人工佔比','Labour %'],mShort:['唔夠人時段','Short-staffed slots'],mSeat:['座位使用效率','Seat efficiency'],mWait:['最長等位','Longest wait'],
+thAction:['建議','Action'],thGuests:['客人','Guests'],thSales:['營業額','Sales'],thLabourC:['人工','Labour'],thNet:['淨效益','Net'],
+rAddF:['{0}–{1} 加一個侍應','Add a server {0}–{1}'],rAddFWhy:['範圍內呢段時間有 {0} 次樓面唔夠人。','Floor was short {0} times in this window across the range.'],
+rAddK:['{0}–{1} 加一個廚師','Add a cook {0}–{1}'],rAddKWhy:['範圍內呢段時間有 {0} 次廚房唔夠人。','Kitchen was short {0} times in this window across the range.'],
+rComb:['開拼枱','Allow combining tables'],rCombWhy:['大枱客等唔到啱size嘅枱。','Large parties wait for a table that fits.'],
+rReset:['清枱快啲（{0} → {1} 分鐘）','Faster table resets ({0} → {1} min)'],rResetWhy:['例如繁忙時加執枱、預先擺好餐具。人工變化未計，視乎你點做到。','e.g. a busser at peak, pre-set cutlery. Labour change not included — depends how you do it.'],
+rHost:['{0}–{1} 加一個帶位','Add a host {0}–{1}'],rHostWhy:['有客人到嘅時候冇人帶位，入座慢咗。','Guests arrive with no host on, so seating slows.'],
+rNone:['暫時冇一項改動可以明顯改善結果。','No single change clearly improves the result.'],
+fService:['服務達成率 {0}%：{1} 位客等唔切走咗，約 CAD {2} 生意。','Service level {0}%: {1} guests walked away, about CAD {2}.'],
+fLossWin:['流失主要喺 {0}。','Most walk-aways happen {0}.'],
+fShortF:['樓面最常唔夠人：{0}。','Floor is most often short {0}.'],fShortK:['廚房最常唔夠人：{0}。','Kitchen is most often short {0}.'],
+fOver:['{0} 人手偏多，大約有 {1} 個人工時數可以減，慳約 CAD {2}（未模擬）。','{0} looks overstaffed: about {1} staff-hours could go, saving about CAD {2} (not simulated).'],
+fLab:['人工佔營業額 {0}%{1}。','Labour is {0}% of sales{1}.'],fLabHi:['，偏高（一般目標 25–35%）',', on the high side (typical target 25–35%)'],fLabLo:['，偏低，留意繁忙時有冇足夠人手',', low — check peak cover'],
+fSeat:['座位使用效率 {0}%：{1}% 係 1–2 人枱，但好多坐咗 4 人或以上嘅枱。可以考慮將一兩張 4 人枱換做 2 人枱。','Seat efficiency {0}%: {1}% of parties are 1–2 guests but many sit at 4-tops. Consider swapping a 4-top for two 2-tops.'],
+fNoShow:['Booking 甩底約 {0} 位（{1}%）。可以考慮確認短訊或者收訂金。','About {0} booked guests no-show ({1}%). Consider confirmation texts or deposits.'],
+fDwell:['「{0}」實際平均坐 {1} 分鐘，比設定 {2} 分鐘長，通常係上菜慢或者人手唔夠。','“{0}” tables stay {1} min vs {2} set — usually slow service or short staff.'],
+fBusy:['如果係 BUSY 情景，會流失 {0} 位客（MODERATE 係 {1}）。繁忙日子要預留後備人手。','In the BUSY scenario {0} guests walk away (MODERATE: {1}). Keep back-up staff for busy days.'],
+fPeakDay:['最忙係 {0}，預計 {1} 位客。','Busiest day is {0} with {1} guests.']
+};
+const ROLE={senior:{k:'floor',sp:120,w:22},server:{k:'floor',sp:100,w:19},host:{k:'host',sp:100,w:19},busser:{k:'busser',sp:100,w:18},head:{k:'kitchen',sp:130,w:32},sous:{k:'kitchen',sp:110,w:26},line:{k:'kitchen',sp:100,w:22},commis:{k:'kitchen',sp:60,w:18}};
+const RL={senior:[['資深侍應','Senior server']],server:[['侍應','Server']],host:[['帶位','Host']],busser:[['執枱','Busser']],
+ head:[['主廚','Head chef'],['大廚','Head cook']],sous:[['副廚','Sous chef'],['二廚','Second cook']],line:[['廚師','Line cook'],['炒鑊','Wok cook']],commis:[['助手','Commis'],['打雜','Kitchen helper']]};
+const RCOL={floor:'#15181c',kitchen:'#b5652f',host:'#0b5d63',busser:'#2f8f83'};
+const DAYF=[.85,.85,.9,.95,1.05,1.1,1];
+const LV={low:{n:'LOW',c:'#4a86b5',occ:.3},mod:{n:'MODERATE',c:'#c98f22',occ:.58},busy:{n:'BUSY',c:'#c2483b',occ:.9}};
+const ORDER=['low','mod','busy'],SCM={low:.7,mod:1,busy:1.3},WEA={sun:1,cloud:.97,rain:.85,snow:.7},HOL={none:1,long:1.1,stat:1.15,eve:1.3,special:1.45},TOF={low:.4,mod:.7,busy:1};
+const MK=(n,dur,port,price,share,from,to)=>({name:n,dur,port,price,share,from,to});
+const TYPES={cha:{menus:[MK(['早餐','Breakfast'],25,1.2,12,20,'07:00','11:30'),MK(['午市套餐','Lunch set'],30,1.4,17,45,'11:00','15:00'),MK(['下午茶','Afternoon tea'],25,1,11,15,'14:30','18:00'),MK(['晚市小菜','Dinner dishes'],45,1.8,22,40,'17:00','23:00')],menu:{spread:35,lingerPct:8,lingerMin:25},combine:true,cps:20,cookRate:55,hold:0,reset:2,kmode:'chinese'},
+ casual:{menus:[MK(['午市套餐','Lunch set'],50,2,23,45,'11:00','15:00'),MK(['單點','À la carte'],70,2.5,32,40,'11:00','22:00'),MK(['三道菜晚餐','3-course dinner'],100,3,55,25,'17:00','22:00')],menu:{spread:25,lingerPct:15,lingerMin:30},combine:true,cps:14,cookRate:40,hold:15,reset:6,kmode:'western'},
+ fine:{menus:[MK(['午市四道菜','4-course lunch'],100,4,85,35,'11:00','15:00'),MK(['五道品嚐','5-course tasting'],125,5,145,30,'17:00','22:00'),MK(['七道品嚐','7-course tasting'],160,7,195,45,'17:00','22:00')],menu:{spread:12,lingerPct:25,lingerMin:30},combine:false,cps:8,cookRate:45,hold:30,reset:18,kmode:'western'}};
+const GC=['#e2687a','#5b8def','#f2b134','#7a5ad8','#3bb3a0','#ef7b45','#4a6b8a','#c95fa8'];
+const pad=n=>String(n).padStart(2,'0');
+const toMin=s=>{const[h,m]=String(s).split(':').map(Number);return h*60+(m||0)};
+const fm=m=>{m=Math.round(m);return pad(Math.floor(m/60)%24)+':'+pad(m%60)};
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const ds=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)};
+const wdOf=s=>(pd(s).getDay()+6)%7;
+const sDate=s=>{const d=pd(s);return`${d.getMonth()+1}/${d.getDate()}`};
+const hashS=s=>{let h=7;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let uid=Date.now();
+const OPS={cha:{walk:95,tol:20,balkQ:80,balkP:35,solo:30,maxP:6,share:true,strict:false},casual:{walk:80,tol:35,balkQ:40,balkP:55,solo:10,maxP:6,share:false,strict:false},fine:{walk:15,tol:10,balkQ:8,balkP:85,solo:3,maxP:4,share:false,strict:true}};
+const TBOOK={cha:{perDay:[1,1,1,1,2,3,2],min:2,max:8,periods:[['午市','Lunch','12:00','13:30',40],['晚市','Dinner','18:00','20:00',60]],noShow:5,takeout:{perHour:12,portions:1.5,ticket:16}},
+ casual:{perDay:[4,4,5,6,10,14,8],min:2,max:6,periods:[['午市','Lunch','11:30','13:30',30],['晚市','Dinner','17:30','20:30',70]],noShow:10,takeout:{perHour:5,portions:2,ticket:28}},
+ fine:{perDay:[10,10,12,14,20,24,16],min:2,max:4,periods:[['午市','Lunch','12:00','13:00',15],['晚市第一輪','Early seating','17:00','18:00',45],['晚市第二輪','Late seating','20:15','21:00',40]],noShow:5,takeout:{perHour:0,portions:2,ticket:0}}};
+const SCB={low:.7,mod:1,busy:1.25};
+const mkMenus=(t,lang)=>TYPES[t].menus.map((x,i)=>({...x,id:i+1,name:x.name[lang==='en'?1:0]}));
+const P=(id,name,role,s1,e1,s2,e2,off)=>({id,name,role,speed:ROLE[role].sp,wage:ROLE[role].w,s1,e1,s2,e2,off,offD:[],onD:[]});
+const mkStaff=()=>[P(1,'陳主廚','head','11:00','22:00','','',[0]),P(2,'阿明','sous','15:00','22:00','','',[1]),P(3,'小玲','line','11:00','19:00','','',[2]),P(4,'阿傑','commis','17:00','22:00','','',[3]),
+ P(5,'Amy','senior','11:00','19:00','','',[6]),P(6,'Ben','server','16:00','22:00','','',[0]),P(7,'Cathy','server','11:00','15:00','17:00','22:00',[1]),P(8,'Dan','server','17:00','22:00','','',[2]),
+ P(9,'Eva','host','11:30','14:30','17:30','21:30',[0]),P(10,'Fai','busser','17:00','22:00','','',[6]),P(11,'Gigi','server','11:30','15:30','','',[2]),P(12,'Ivy','server','18:00','22:00','','',[0])];
+const today=()=>ds(new Date());
+const mkPeriods=(lang,dinner)=>[{id:1,name:lang==='en'?'Lunch':'午市',from:'11:30',to:'13:30',share:dinner!=null?100-dinner:30},{id:2,name:lang==='en'?'Dinner':'晚市',from:'17:30',to:'20:30',share:dinner!=null?dinner:70}];
+const CK=(id,zh,en,amt,u)=>({id,n:[zh,en],amt,u});
+const mkCosts=lang=>[CK(1,'租金','Rent',18000,'month'),CK(2,'燈油火蠟（電、煤氣、水）','Utilities (power, gas, water)',2400,'month'),CK(3,'食材成本','Food cost',32,'pctS'),CK(4,'信用卡 / POS 手續費','Card / POS fees',2.5,'pctS'),
+ CK(5,'人工附加（CPP、EI、假期錢）','Payroll extras (CPP, EI, vacation)',15,'pctL'),CK(6,'保險','Insurance',450,'month'),CK(7,'市場推廣','Marketing',800,'month'),CK(8,'清潔同雜項用品','Cleaning and supplies',40,'day'),CK(9,'維修保養','Repairs and maintenance',350,'month'),CK(10,'經理 / 老闆薪金','Manager / owner salary',7000,'month'),CK(11,'外賣平台佣金（估）','Delivery app commission (est.)',4,'pctS')].map(c=>({id:c.id,name:c.n[lang==='en'?1:0],amt:c.amt,u:c.u}));
+function defaults(lang){const c=TYPES.casual;return{
+ tables:[{x:100,y:95,s:2,shape:'round'},{x:190,y:95,s:2,shape:'round'},{x:280,y:95,s:2,shape:'square'},{x:405,y:105,s:4,shape:'round'},{x:515,y:105,s:4,shape:'square'},{x:115,y:225,s:4,shape:'round'},{x:245,y:225,s:4,shape:'round'},{x:380,y:235,s:4,shape:'square'},{x:510,y:235,s:4,shape:'round'},{x:270,y:370,s:6,shape:'rect'},{x:450,y:370,s:6,shape:'booth'},{x:665,y:285,s:4,shape:'square'},{x:665,y:410,s:8,shape:'rect'}],
+ ent:{x:70,y:492},kit:{x:600,y:20,w:180,h:150},bgOp:.55,open:660,close:1320,slot:30,closed:{},date:today(),range:'week',scen:'mod',preset:'weekday',levels:{low:{},mod:{},busy:{}},rates:{},
+ bookings:[{id:1,name:'Wong',date:today(),time:'12:30',size:2},{id:2,name:'Amy',date:today(),time:'18:30',size:2},{id:3,name:'陳生',date:today(),time:'19:00',size:4},{id:4,name:'公司聚餐',date:addD(today(),1),time:'19:30',size:10},{id:5,name:'Lee',date:addD(today(),2),time:'20:00',size:6}],
+ staff:mkStaff(),kmode:'western',cps:c.cps,cookRate:c.cookRate,reset:c.reset,
+ type:'casual',menus:mkMenus('casual',lang),menu:{...c.menu},combine:true,hold:15,noShow:10,lateMax:10,
+ weather:'sun',holiday:'none',event:{on:false,end:'21:30',boost:50},takeout:{perHour:5,portions:2,ticket:28},
+ waitlist:[],scenarios:[],lang:lang||'zh',auto:{on:true,perDay:[4,4,5,6,10,14,8],min:2,max:6,periods:mkPeriods(lang)},maxCap:0,ops:{...OPS.casual},invest:450000,pnlView:'month',pillars:[{x:320,y:300,sh:'sq',sz:22},{x:585,y:330,sh:'round',sz:22}],costs:mkCosts(lang)}}
+let S=null,bgImg=null;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.tables)){let o=null;try{o=JSON.parse(localStorage.getItem('rtflow-v2'))}catch(e){}
+ S=defaults(o&&o.lang);
+ if(o&&Array.isArray(o.tables)){for(const k of ['tables','ent','kit','bg','bgOp','open','close','slot','preset','menus','menu','combine','hold','noShow','lateMax','weather','holiday','event','takeout','waitlist','lang','type','cps','cookRate'])if(o[k]!=null)S[k]=o[k];
+  S.tables=S.tables.map(t=>({shape:'round',...t}));if(o.levels)S.levels.mod={...o.levels};if(Array.isArray(o.bookings))S.bookings=o.bookings.map(b=>({date:today(),...b}));}}
+S={...defaults(S.lang),...S};
+function fixS(){if(!Array.isArray(S.staff))S.staff=mkStaff();if(!Array.isArray(S.menus)||!S.menus.length)S.menus=mkMenus('casual',S.lang);
+if(!S.levels.low)S.levels={low:{},mod:{},busy:{}};if(!S.auto||!Array.isArray(S.auto.perDay))S.auto=defaults(S.lang).auto;if(!Array.isArray(S.costs))S.costs=mkCosts(S.lang);if(!Array.isArray(S.auto.periods))S.auto.periods=mkPeriods(S.lang,S.auto.dinner);if(S.maxCap==null)S.maxCap=0;if(!S.ops)S.ops={...(OPS[S.type]||OPS.casual)};if(S.ops.share==null){const d=OPS[S.type]||OPS.casual;S.ops.share=d.share;S.ops.strict=d.strict}if(S.invest==null)S.invest=450000;if(!Array.isArray(S.pillars))S.pillars=[];}
+fixS();
+let viewDate=S.date;
+let saveT,booted=false,applying=false,cloud=null,cloudT=null;
+function save(){if(booted&&!applying)S._t=Date.now();if(cloud&&booted&&!applying){clearTimeout(cloudT);cloudT=setTimeout(pushCloud,1500)}clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){try{const c={...S};delete c.bg;localStorage.setItem(KEY,JSON.stringify(c))}catch(_){}}},300)}
+if(S.bg){bgImg=new Image();bgImg.src=S.bg}
+const L=()=>S.lang==='en'?1:0;
+const tr=(k,...a)=>{let s=(STR[k]||[k,k])[L()];a.forEach((v,i)=>s=s.split('{'+i+'}').join(v));return s};
+const getP=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+const setP=(p,v)=>{const ks=p.split('.'),l=ks.pop();ks.reduce((o,k)=>o[k],S)[l]=v};
+const roleName=r=>{const x=RL[r];return(x[S.kmode==='chinese'&&x[1]?1:0])[L()]};
+const dayLong=s=>`${sDate(s)} ${STR.dshort[L()][wdOf(s)]}`;
+const rangeDates=()=>Array.from({length:{day:1,week:7,month:30}[S.range]||1},(_,i)=>addD(S.date,i));
+
+/* ---------- traffic + staff model ---------- */
+function presetLevel(p,m){const h=m/60;
+ if(p==='weekend')return h<11.5?'mod':h<15?'busy':h<17?'mod':h<21.5?'busy':'mod';
+ if(p==='quiet')return (h>=12&&h<13.5)||(h>=18&&h<20)?'mod':'low';
+ return h<12?'low':h<14?'busy':h<17?'low':h<18?'mod':h<21?'busy':'mod'}
+const shiftLv=(l,sc)=>sc==='low'?(l==='busy'?'mod':'low'):sc==='busy'?(l==='low'?'mod':'busy'):l;
+const slotStart=m=>S.open+Math.floor((m-S.open)/S.slot)*S.slot;
+const levelAt=(sc,m)=>{const s=slotStart(m);return S.levels[sc][s]||shiftLv(presetLevel(S.preset,s),sc)};
+const isClosed=m=>!!S.closed[slotStart(m)];
+const slotList=()=>{const a=[];for(let m=S.open;m<S.close;m+=S.slot)a.push(m);return a};
+const seatsTotal=()=>S.tables.reduce((a,t)=>a+t.s,0);
+const onMenu=(mu,m)=>{const a=toMin(mu.from||'00:00'),b=toMin(mu.to||'23:59');return a<=b?m>=a&&m<b:m>=a||m<b};
+const menusAt=m=>{const l=S.menus.filter(mu=>onMenu(mu,m)&&mu.share>0);return l.length?l:S.menus};
+const _adC=new Map();function avgDine(m){const ck=m==null?-1:m;if(_adC.has(ck))return _adC.get(ck);const r=_avgDine(m);_adC.set(ck,r);return r}
+function _avgDine(m){const l=m==null?S.menus:menusAt(m),w=l.reduce((a,x)=>a+(x.share||0),0)||1;return l.reduce((a,x)=>a+x.dur*(x.share||0),0)/w+S.menu.lingerPct/100*S.menu.lingerMin}
+const avgPrice=()=>{const w=S.menus.reduce((a,x)=>a+(x.share||0),0)||1;return S.menus.reduce((a,x)=>a+x.price*(x.share||0),0)/w};
+function envF(m){let f=WEA[S.weather]*HOL[S.holiday];if(S.event.on){const e=toMin(S.event.end);if(m>=e&&m<e+90)f*=1+S.event.boost/100}return f}
+function arrRate(m,sc,wd,seats){if(isClosed(m))return 0;const s=slotStart(m);if(S.rates[s]!=null)return S.rates[s]*SCM[sc]*envF(m);return LV[levelAt(sc,m)].occ*seats*.75*60/avgDine(m)*DAYF[wd]*envF(m)}
+const onDay=(p,date,wd)=>(p.onD||[]).includes(date)||(!p.off.includes(wd)&&!(p.offD||[]).includes(date));
+const inWin=(m,a,b)=>!!(a&&b)&&m>=toMin(a)&&m<toMin(b);
+const onAt=(p,date,wd,m)=>onDay(p,date,wd)&&(inWin(m,p.s1,p.e1)||inWin(m,p.s2,p.e2));
+const shiftHrs=p=>((p.s1&&p.e1?Math.max(0,toMin(p.e1)-toMin(p.s1)):0)+(p.s2&&p.e2?Math.max(0,toMin(p.e2)-toMin(p.s2)):0))/60;
+const labourDay=date=>{const wd=wdOf(date);return S.staff.reduce((a,p)=>a+(onDay(p,date,wd)?shiftHrs(p)*(p.wage||0):0),0)};
+const staffOnDay=date=>{const wd=wdOf(date);return S.staff.filter(p=>onDay(p,date,wd)&&shiftHrs(p)>0)};
+function staffCaps(date){const wd=wdOf(date),out=[],on=S.staff.filter(p=>onDay(p,date,wd)).map(p=>({p,w:[[p.s1,p.e1],[p.s2,p.e2]].filter(x=>x[0]&&x[1]).map(x=>[toMin(x[0]),toMin(x[1])])}));
+ for(let m=S.open;m<S.close;m++){const c={fl:0,ki:0,ho:0,bu:0};for(const{p,w}of on){if(!w.some(x=>m>=x[0]&&m<x[1]))continue;const k=ROLE[p.role].k,sp=(p.speed||100)/100;if(k==='floor')c.fl+=sp;else if(k==='kitchen')c.ki+=sp;else if(k==='host')c.ho++;else c.bu++}out.push(c)}return out}
+
+/* ---------- bookings volume ---------- */
+const _bkC=new Map();
+function genBookings(date,sc){sc=sc||'mod';if(!S.auto.on){const e=[];e.rejected=0;return e}const key=sc+S.lang+date+JSON.stringify(S.auto)+S.open+S.close+JSON.stringify(S.closed)+JSON.stringify(S.tables)+S.reset+S.combine+S.maxCap+JSON.stringify(S.menus)+S.bookings.length;if(_bkC.has(key))return _bkC.get(key);
+ const R=rng(hashS(date)+99991),n=Math.max(0,Math.round((S.auto.perDay[wdOf(date)]||0)*SCB[sc])),ok=m=>m>=S.open&&m<S.close-30&&!S.closed[slotStart(m)];
+ const pools=S.auto.periods.map(pr=>{const a=toMin(pr.from||'00:00'),b=toMin(pr.to||'00:00'),l=[];for(let m=Math.ceil(a/15)*15;m<=b;m+=15)if(ok(m))l.push(m);return{l,w:Math.max(0,Number(pr.share)||0)}}).filter(x=>x.l.length&&x.w>0),tw=pools.reduce((a,x)=>a+x.w,0);
+ const out=[],lo=Math.max(1,Math.min(S.auto.min,S.auto.max)),hi=Math.max(S.auto.min,S.auto.max);
+ /* booking ledger: a table is only promised if it is free for the whole expected meal */
+ const led=S.tables.map(t=>({s:t.s,x:t.x,y:t.y,iv:[]})),bk=[],dur=m=>avgDine(m)+S.reset+5;
+ const free=(i,a,b)=>led[i].iv.every(([x,y])=>b<=x||a>=y);
+ const capOk=(a,b,size)=>!(S.maxCap>0)||bk.filter(([x,y])=>!(b<=x||a>=y)).reduce((t,[,,g])=>t+g,0)+size<=S.maxCap;
+ const slack=(i,a,b)=>{let lo=S.open,hi=S.close+240;for(const[x,y]of led[i].iv){if(y<=a&&y>lo)lo=y;if(x>=b&&x<hi)hi=x}return(a-lo)+(hi-b)};
+ const place=(m,size)=>{const a=m,b=m+dur(m);if(!capOk(a,b,size))return null;let best=-1,bs=1e9;for(let i=0;i<led.length;i++)if(led[i].s>=size&&free(i,a,b)){const k=slack(i,a,b)+(led[i].s-size)*25;if(k<bs){bs=k;best=i}}
+  let use=best>=0?[best]:null;if(!use&&S.combine){let bs=1e9;for(let i=0;i<led.length;i++)for(let j=i+1;j<led.length;j++){const A=led[i],B=led[j];if(A.s+B.s>=size&&A.s+B.s<bs&&Math.hypot(A.x-B.x,A.y-B.y)<=190&&free(i,a,b)&&free(j,a,b)){bs=A.s+B.s;use=[i,j]}}}
+  if(!use)return null;use.forEach(i=>led[i].iv.push([a,b]));bk.push([a,b,size]);return use};
+ for(const b of S.bookings)if((b.date||S.date)===date){const m=toMin(b.time);if(m>=S.open&&m<S.close)place(m,b.size)}
+ let rejected=0;
+ for(let i=0;i<n;i++){if(!tw)break;let r=R()*tw,pool=pools[pools.length-1].l;for(const x of pools){if((r-=x.w)<0){pool=x.l;break}}
+  const m0=pool[Math.floor(R()*pool.length)],size=Math.min(hi,lo+Math.floor(Math.pow(R(),1.6)*(hi-lo+1)));let got=null;
+  for(const off of [0,15,-15,30,-30,45,-45]){const m=m0+off;if(!pool.includes(m))continue;if(place(m,size)){got=m;break}}
+  if(got==null){rejected++;continue}
+  out.push({id:'a'+i,name:tr('autoName'),date,time:fm(got),size,menu:0,auto:true})}
+ out.rejected=rejected;_bkC.set(key,out);return out}
+const bookingsFor=(date,sc)=>S.bookings.filter(b=>(b.date||S.date)===date).concat(genBookings(date,sc));
+
+/* ---------- simulation ---------- */
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function simulate(date,sc,full){
+ const wd=wdOf(date),R=rng(hashS(date)+ORDER.indexOf(sc)*7919+S.tables.length*7),M=S.menu,seatsP=seatsTotal(),seats=S.maxCap>0?Math.min(seatsP,S.maxCap):seatsP,caps=staffCaps(date);
+ const capAt=m=>caps[Math.max(0,Math.min(caps.length-1,m-S.open))]||{fl:0,ki:0,ho:0,bu:0};
+ const tabs=S.tables.map((t,i)=>({i,s:t.s,x:t.x,y:t.y,gs:[],used:0,clean:-1}));
+ const srt=tabs.map(t=>t.s).sort((a,b)=>b-a),maxFit=S.combine?(srt[0]||0)+(srt[1]||0):(srt[0]||0);
+ const pickTarget=(g,held,m)=>{const busy=t=>t.gs.length?Math.max(...t.gs.map(x=>x.rem)):Math.max(0,t.clean-m);let b=null,bk=1e9;
+  for(const t of tabs)if(!held.has(t.i)&&t.s>=g.size){const k=busy(t)*10+t.s;if(k<bk){bk=k;b=[t.i]}}
+  if(S.combine)for(let a=0;a<tabs.length;a++)for(let c=a+1;c<tabs.length;c++){const A=tabs[a],B=tabs[c];if(held.has(a)||held.has(c)||A.s+B.s<g.size||Math.hypot(A.x-B.x,A.y-B.y)>190)continue;
+   const k=Math.max(busy(A),busy(B))*10+A.s+B.s+4;if(k<bk){bk=k;b=[a,c]}}return b};
+ const mkDine=g=>{let mu=g.menuId&&S.menus.find(x=>x.id===g.menuId);if(!mu){const l=menusAt(g.seat),w=l.reduce((a,x)=>a+(x.share||0),0);let r=R()*w;mu=l.find(x=>(r-=(x.share||0))<0)||l[l.length-1]}
+  const gs=(R()+R()+R()-1.5)*2,f=Math.max(.45,Math.min(2.3,1+M.spread/100*gs));let d=mu.dur*f*(1+.04*Math.max(0,g.size-2));
+  if(R()<M.lingerPct/100){d+=M.lingerMin*(.5+R());g.linger=true}g.menu=mu.id;g.price=mu.price;g.port=mu.port;g.dine=Math.max(8,d);g.rem=g.dine};
+ const groups=[],queue=[],act=[],per=[];let gid=0,toOrders=0;
+ const bookG=bookingsFor(date,sc).map(b=>{const m=toMin(b.time);return{id:gid++,size:b.size,bm:m,arr:m+R()*S.lateMax,book:true,bid:b.id,menuId:b.menu||0,noShow:R()<S.noShow/100}}).filter(g=>g.bm>=S.open&&g.bm<S.close).sort((a,b)=>a.bm-b.bm);
+ groups.push(...bookG);const pending=bookG.filter(g=>!g.noShow).sort((a,b)=>a.arr-b.arr);
+ const OP=S.ops,size=()=>{const r=R(),so=OP.solo/100;if(r<so)return 1;const x=(r-so)/(1-so),v=x<.45?2:x<.67?3:x<.91?4:x<.97?5:6;return Math.min(v,OP.maxP||6)};
+ let m=S.open;
+ for(;m<S.close+600;m++){
+  const closed=m<S.close&&isClosed(m),c=capAt(m);
+  if(m<S.close&&!closed){const lam=arrRate(m,sc,wd,seatsP)*OP.walk/100/60/2.8;let k=-1,p=1;const Lx=Math.exp(-lam);do{k++;p*=R()}while(p>Lx&&k<40);
+   for(let j=0;j<k;j++){const g={id:gid++,size:size(),arr:m+R()*.9,book:false};groups.push(g);
+    if(g.size>maxFit||(queue.filter(x=>!x.book).length>=Math.max(1,Math.round(tabs.length*OP.balkQ/100))&&R()<OP.balkP/100))g.balk=g.arr;else queue.push(g)}}
+  while(pending.length&&pending[0].arr<m+1){const g=pending.shift();if(g.size>maxFit){g.noFit=true;g.balk=g.arr}else queue.push(g)}
+  const cleanT=Math.round(S.reset*(c.bu>0?1:1.6));
+  for(let i=act.length-1;i>=0;i--){const g=act[i];if(g.rem<=0){g.leave=m;let emp=true;for(const ti of g.tabs){const X=tabs[ti];X.gs=X.gs.filter(x=>x!==g);X.used=Math.max(0,X.used-(g.tabs.length>1?X.s:g.size));if(!X.gs.length){X.used=0;X.clean=m+cleanT}else emp=false}g.cleanEnd=emp?m+cleanT:m;act.splice(i,1)}}
+  let seated=0,dem=0;for(const g of act){seated+=g.size;dem+=g.size*g.port/g.dine}
+  if(m<S.close&&!closed){const o=S.takeout.perHour*TOF[levelAt(sc,m)]*SCM[sc]/60;dem+=o*S.takeout.portions;toOrders+=o}
+  const su=c.fl?seated/(c.fl*S.cps):(seated?3:0),ku=c.ki?dem/(c.ki*S.cookRate/60):(dem?3:0);
+  const slow=Math.min(3,1+.7*Math.max(0,su-1)+.7*Math.max(0,ku-1));
+  for(const g of act)g.rem-=1/slow;
+  const held=new Set();
+  const holdW=OP.strict?Math.max(S.hold,Math.round(avgDine(m)*.85)):S.hold;
+  for(const g of bookG){if(g.bm>m+holdW)break;if(g.seat!=null||g.balk!=null||g.noFit)continue;
+   const waiting=!g.noShow&&g.arr<=m;if(!waiting&&g.noShow&&m>=g.bm+15)continue;
+   g.target=pickTarget(g,held,m);if(g.target)g.target.forEach(i=>held.add(i))}
+  if(!closed){let can=c.ho>0?2*c.ho+1:1,inN=seated;queue.sort((a,b)=>(b.book-a.book)||(a.arr-b.arr));
+   for(let qi=0;qi<queue.length&&can>0;){const g=queue[qi];
+    if(g.arr>m||(c.ho===0&&m-g.arr<2)||(S.maxCap>0&&inN+g.size>S.maxCap)){qi++;continue}
+    const ok=t=>!t.gs.length&&t.clean<=m&&(g.book||!held.has(t.i));let best=null,use=null;
+    if(g.target&&g.target.every(i=>ok(tabs[i])))use=g.target;
+    if(!use)for(const t of tabs)if(ok(t)&&t.s>=g.size&&(!best||t.s<best.s))best=t;
+    if(!use&&OP.share&&!g.book){let sb=null;for(const t of tabs)if(t.gs.length&&t.gs.every(x=>x.tabs.length===1&&!x.book)&&t.s-t.used>=g.size&&(!sb||t.s-t.used<sb.s-sb.used))sb=t;
+     if(sb&&(!best||sb.s-sb.used-g.size<=best.s-g.size))use=[sb.i]}
+    if(!use&&best)use=[best.i];
+    else if(!use&&S.combine){let bs=1e9;for(let a=0;a<tabs.length;a++)for(let b=a+1;b<tabs.length;b++){const A=tabs[a],B=tabs[b];
+     if(ok(A)&&ok(B)&&A.s+B.s>=g.size&&A.s+B.s<bs&&Math.hypot(A.x-B.x,A.y-B.y)<=190){bs=A.s+B.s;use=[a,b]}}}
+    if(use){g.seat=Math.max(m,g.arr);g.tabs=use;mkDine(g);use.forEach(i=>{const X=tabs[i];if(use.length===1){g.off=X.used;X.used+=g.size}else{g.off=0;X.used=X.s}X.gs.push(g)});act.push(g);can--;inN+=g.size;queue.splice(qi,1)}else qi++}}
+  for(let qi=queue.length-1;qi>=0;qi--){const g=queue[qi];if(!g.book&&m-g.arr>OP.tol){g.balk=m;queue.splice(qi,1)}}
+  let qn=0;for(const g of queue)if(g.arr<=m)qn+=g.size;
+  per.push({m,seated,q:qn,dem});
+  if(m>=S.close&&!queue.length&&!act.length&&!pending.length)break}
+ for(const g of act){g.leave=m;g.cleanEnd=m}for(const g of queue)g.balk=m;
+ const real=groups.filter(g=>!g.noShow),SL=slotList(),si=m=>Math.floor((m-S.open)/S.slot),nS=SL.length;
+ const A=SL.map(()=>({arr:0,lost:0,wsum:0,wn:0,seatG:[]}));
+ for(const g of real){const a=si(Math.floor(g.arr));if(a>=0&&a<nS)A[a].arr+=g.size;
+  if(g.seat==null){const b=si(Math.floor(g.balk));if(b>=0&&b<nS)A[b].lost+=g.size}else{const c=si(g.seat);if(c>=0&&c<nS){A[c].wsum+=g.seat-g.arr;A[c].wn++}}}
+ const bookN=SL.map(()=>0);for(const b of bookingsFor(date,sc)){const x=si(toMin(b.time));if(toMin(b.time)>=S.open&&x>=0&&x<nS)bookN[x]++}
+ const slots=SL.map((s,ix)=>{const e=Math.min(s+S.slot,S.close),cl=!!S.closed[s],a0=s-S.open,a1=e-S.open;
+  let sum=0,mx=0,maxQ=0,dsum=0;for(let x=a0;x<a1&&x<per.length;x++){const q=per[x];sum+=q.seated;dsum+=q.dem;if(q.seated>mx)mx=q.seated;if(q.q>maxQ)maxQ=q.q}
+  const n=Math.max(1,Math.min(a1,per.length)-a0),avg=sum/n,dem=dsum/n,arr=A[ix].arr,lost=A[ix].lost,wait=A[ix].wn?A[ix].wsum/A[ix].wn:0;
+  let fl=0,ki=0,ho=0,bu=0;for(let x=s;x<e;x++){const c=capAt(x);fl+=c.fl;ki+=c.ki;ho=Math.max(ho,c.ho);bu=Math.max(bu,c.bu)}fl/=(e-s);ki/=(e-s);
+  const occ=seats?avg/seats:0,pred=cl?'closed':occ>=.75||maxQ>=6?'busy':occ>=.4?'mod':'low';
+  const needS=mx?Math.max(1,Math.ceil(mx/S.cps*10)/10):0,needC=dem>.01?Math.max(.5,Math.ceil(dem*60/S.cookRate*10)/10):0;
+  return{s,e,input:levelAt(sc,s),pos:S.rates[s]!=null,cl,arr,lost,wait,avg,mx,maxQ,occ,pred,books:bookN[ix],
+   needS,needC,fl,ki,ho,bu,shortF:!cl&&needS>fl+.15,shortK:!cl&&needC>ki+.15}});
+ const sat=groups.filter(g=>g.seat!=null),served=sat.reduce((a,g)=>a+g.size,0),lost=real.filter(g=>g.seat==null).reduce((a,g)=>a+g.size,0);
+ const revenue=Math.round(sat.reduce((a,g)=>a+g.size*g.price,0)+toOrders*S.takeout.ticket),labour=Math.round(labourDay(date));
+ const peak=slots.reduce((a,s)=>s.avg>a.avg?s:a,slots[0]||{avg:0,s:S.open,occ:0});
+ let seatsUsed=0;for(const g of sat)for(const ti of g.tabs)seatsUsed+=(S.tables[ti]?S.tables[ti].s:0);
+ const sum={sF:slots.map(x=>x.shortF?1:0),sK:slots.map(x=>x.shortK?1:0),lostS:slots.map(x=>x.lost),hoGap:slots.map(x=>!x.cl&&x.arr>0&&x.ho===0?1:0),sur:slots.map(x=>x.cl?0:Math.max(0,Math.floor(x.fl-x.needS-.5))),
+  noShowG:groups.filter(g=>g.noShow).reduce((a,g)=>a+g.size,0),bookedG:groups.filter(g=>g.book).reduce((a,g)=>a+g.size,0),seatEff:seatsUsed?served/seatsUsed:1,small:sat.length?sat.filter(g=>g.size<=2).length/sat.length:0,date,sc,served,lost,maxWait:Math.round(Math.max(0,...sat.map(g=>g.seat-g.arr))),revenue,labour,short:slots.filter(s=>s.shortF||s.shortK).length,peak:peak.s,peakOcc:peak.occ,staffOn:staffOnDay(date).length};
+ if(!full)return sum;
+ const dw=sat.map(g=>g.leave-g.seat).sort((a,b)=>a-b),q=p=>dw.length?dw[Math.min(dw.length-1,Math.floor(p*dw.length))]:0;
+ const heat=S.tables.map(()=>({min:0,turns:0}));for(const g of sat)for(const ti of g.tabs){if(heat[ti]){heat[ti].min+=g.leave-g.seat;heat[ti].turns++}}
+ const mstat=S.menus.map(mu=>{const l=sat.filter(g=>g.menu===mu.id);return{mu,n:l.length,avg:l.length?l.reduce((a,g)=>a+g.leave-g.seat,0)/l.length:0}});
+ return{...sum,groups,per,slots,seats,dw,dwAvg:dw.length?dw.reduce((a,b)=>a+b,0)/dw.length:0,p10:q(.1),p90:q(.9),heat,toOrders:Math.round(toOrders),AD:avgDine(),mstat,caps}}
+let ALL=[],RES=null;
+function runAll(){_adC.clear();_bkC.clear();const ds2=rangeDates();if(!ds2.includes(viewDate))viewDate=S.date;ALL=ds2.map(d=>({date:d,low:simulate(d,'low'),mod:simulate(d,'mod'),busy:simulate(d,'busy')}));RES=simulate(viewDate,S.scen,true)}
+const totals=sc=>{const a=ALL.map(x=>x[sc]);const served=a.reduce((s,x)=>s+x.served,0),rev=a.reduce((s,x)=>s+x.revenue,0),lab=a.reduce((s,x)=>s+x.labour,0);
+ const pk=a.reduce((b,x)=>x.served>b.served?x:b,a[0]);return{served,lost:a.reduce((s,x)=>s+x.lost,0),wait:Math.max(0,...a.map(x=>x.maxWait)),rev,lab,pct:rev?Math.round(lab/rev*100):0,short:a.reduce((s,x)=>s+x.short,0),pk}};
+
+/* ---------- canvas (plan view) ---------- */
+const cv=$('#cv'),ctx=cv.getContext('2d'),box=$('#cvbox');let scale=1;
+function fit(){const r=box.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);scale=r.width/W*d;draw()}
+const FONT='Inter,"Noto Sans HK",sans-serif',INK='#15181c',LINE='#8b949c',ACC='#0b5d63';
+const floor=document.createElement('canvas');floor.width=W;floor.height=H;
+{const f=floor.getContext('2d');f.fillStyle='#eceef0';f.fillRect(0,0,W,H);f.fillStyle='#fbfbfa';f.fillRect(10,10,W-20,H-20);
+ f.strokeStyle='#eceef0';f.lineWidth=1;for(let x=30;x<W-10;x+=20){f.beginPath();f.moveTo(x+.5,10);f.lineTo(x+.5,H-10);f.stroke()}for(let y=30;y<H-10;y+=20){f.beginPath();f.moveTo(10,y+.5);f.lineTo(W-10,y+.5);f.stroke()}
+ f.strokeStyle='#e1e4e7';for(let x=110;x<W-10;x+=100){f.beginPath();f.moveTo(x+.5,10);f.lineTo(x+.5,H-10);f.stroke()}for(let y=110;y<H-10;y+=100){f.beginPath();f.moveTo(10,y+.5);f.lineTo(W-10,y+.5);f.stroke()}
+ f.strokeStyle='#2b3036';f.lineWidth=6;f.strokeRect(10,10,W-20,H-20);
+ for(const x of [70,230,390]){f.fillStyle='#fbfbfa';f.fillRect(x,7,90,6);f.strokeStyle=LINE;f.lineWidth=1;f.beginPath();f.moveTo(x,7.5);f.lineTo(x+90,7.5);f.moveTo(x,12.5);f.lineTo(x+90,12.5);f.moveTo(x,10);f.lineTo(x+90,10);f.stroke()}}
+const rr=(c,x,y,w,h,r)=>{c.beginPath();c.roundRect(x,y,w,h,r)};
+function geom(t){const s=t.s,sh=t.shape||'round',o=[],z=t.z||1;let w,h;
+ if(sh==='round'){const r=(s<=2?16:s<=4?22:s<=6?28:Math.min(46,10+s*3))*z;w=h=r*2;for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s===2?0:-Math.PI/2);o.push({x:t.x+Math.cos(a)*(r+11),y:t.y+Math.sin(a)*(r+11)})}}
+ else if(sh==='oval'){const rx=Math.max(30,12+s*5)*z,ry=(s<=4?20:s<=8?24:28)*z,rot=t.rot?1:0;w=(rot?ry:rx)*2;h=(rot?rx:ry)*2;
+  for(let k=0;k<s;k++){const a=Math.PI*2/s*k+(s%2?-Math.PI/2:0),dx=Math.cos(a)*(rx+11),dy=Math.sin(a)*(ry+11);o.push(rot?{x:t.x-dy,y:t.y+dx}:{x:t.x+dx,y:t.y+dy})}}
+ else if(sh==='square'){const side=(s<=4?40:s<=8?60:76)*z;w=h=side;const per=[0,0,0,0];for(let k=0;k<s;k++)per[[0,2,1,3][k%4]]++;const d=side/2+11;
+  for(let k=0;k<per[0];k++)o.push({x:t.x-side/2+side/per[0]*(k+.5),y:t.y-d});for(let k=0;k<per[2];k++)o.push({x:t.x-side/2+side/per[2]*(k+.5),y:t.y+d});
+  for(let k=0;k<per[1];k++)o.push({x:t.x+d,y:t.y-side/2+side/per[1]*(k+.5)});for(let k=0;k<per[3];k++)o.push({x:t.x-d,y:t.y-side/2+side/per[3]*(k+.5)})}
+ else{const n1=Math.ceil(s/2),n2=Math.floor(s/2),Lg=Math.max(48,n1*26)*z,D=34*z,off=D/2+(sh==='booth'?13:11),rot=t.rot?1:0;w=rot?D:Lg;h=rot?Lg:D;
+  const pts=[];for(let k=0;k<n1;k++)pts.push({dx:-Lg/2+Lg/n1*(k+.5),dy:-off});for(let k=0;k<n2;k++)pts.push({dx:-Lg/2+Lg/Math.max(1,n2)*(k+.5),dy:off});
+  for(const p of pts)o.push(rot?{x:t.x-p.dy,y:t.y+p.dx}:{x:t.x+p.dx,y:t.y+p.dy})}
+ return{w,h,ch:o}}
+function tPath(c,t,g,grow=0){const sh=t.shape||'round';if(sh==='round'){c.beginPath();c.arc(t.x,t.y,g.w/2+grow,0,Math.PI*2)}else if(sh==='oval'){c.beginPath();c.ellipse(t.x,t.y,g.w/2+grow,g.h/2+grow,0,0,Math.PI*2)}else rr(c,t.x-g.w/2-grow,t.y-g.h/2-grow,g.w+grow*2,g.h+grow*2,(sh==='square'?3:5)+grow)}
+function hatch(c,x,y,w,h,col){c.save();c.beginPath();c.rect(x,y,w,h);c.clip();c.strokeStyle=col;c.lineWidth=1;for(let k=-h;k<w;k+=7){c.beginPath();c.moveTo(x+k,y+h);c.lineTo(x+k+h,y);c.stroke()}c.restore()}
+function drawTable(t,idx,st){const c=ctx,g=geom(t),sh=t.shape||'round';
+ if(sh==='booth'){c.fillStyle='#6f7a84';const rot=t.rot,Lg=rot?g.h:g.w,th=11;
+  for(const sgn of [-1,1]){if(rot)rr(c,t.x+sgn*(g.w/2+13)-th/2,t.y-Lg/2-4,th,Lg+8,3);else rr(c,t.x-Lg/2-4,t.y+sgn*(g.h/2+13)-th/2,Lg+8,th,3);c.fill()}}
+ else for(const p of g.ch){c.fillStyle='#d3d8dc';rr(c,p.x-6,p.y-6,12,12,3);c.fill();c.strokeStyle='#b4bbc1';c.lineWidth=1;c.stroke()}
+ tPath(c,t,g);c.fillStyle=st.heat!=null?st.heat:st.dirty?'#efece6':st.occ!=null?'#e3efee':'#ffffff';c.fill();
+ if(st.dirty&&st.heat==null){c.save();tPath(c,t,g);c.clip();hatch(c,t.x-g.w/2,t.y-g.h/2,g.w,g.h,'#c9c3b8');c.restore()}
+ tPath(c,t,g);c.strokeStyle=st.occ!=null?ACC:LINE;c.lineWidth=st.occ!=null?1.8:1.3;c.stroke();
+ if(st.occ!=null&&st.heat==null){c.strokeStyle=ACC;c.lineWidth=3;c.lineCap='round';
+  if(sh==='round'||sh==='oval'){c.beginPath();c.ellipse(t.x,t.y,g.w/2+4,g.h/2+4,0,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,st.occ));c.stroke()}
+  else{const y=t.y+g.h/2+4,x0=t.x-g.w/2;c.beginPath();c.moveTo(x0,y);c.lineTo(x0+g.w*Math.min(1,st.occ),y);c.stroke()}c.lineCap='butt'}
+ c.fillStyle=st.heat!=null?'#fff':'#7a858f';c.font=`600 10px ${FONT}`;c.textAlign='center';c.textBaseline='middle';
+ c.fillText(editing?`T${idx+1}·${t.s}`:`T${idx+1}`,t.x,t.y);c.textBaseline='alphabetic';
+ if(st.sel){c.strokeStyle=ACC;c.lineWidth=1.5;c.setLineDash([4,3]);rr(c,t.x-g.w/2-18,t.y-g.h/2-18,g.w+36,g.h+36,6);c.stroke();c.setLineDash([])}}
+const GP=['#4a86b5','#c2483b','#c98f22','#6b5fb5','#2f8f83','#b5652f','#5a6f80','#a24f86'];
+function dot(x,y,col,a){const c=ctx;c.globalAlpha=Math.max(0,Math.min(1,a));c.lineJoin='round';
+ const body=()=>{c.beginPath();c.moveTo(x-4.6,y+5.4);c.lineTo(x-4.6,y+3.6);c.ellipse(x,y+3.6,4.6,3.6,0,Math.PI,0);c.lineTo(x+4.6,y+5.4);c.closePath()};
+ const head=()=>{c.beginPath();c.arc(x,y-2.6,2.7,0,Math.PI*2)};
+ c.strokeStyle='#fff';c.lineWidth=2.2;body();c.stroke();head();c.stroke();
+ c.fillStyle=col;body();c.fill();head();c.fill();c.globalAlpha=1}
+const RC={floor:'#15181c',kitchen:'#b5652f',host:'#0b5d63',busser:'#2f8f83'};
+function staffP(x,y,p){const c=ctx,k=ROLE[p.role].k;c.fillStyle=RC[k];c.beginPath();c.arc(x,y,8,0,Math.PI*2);c.fill();
+ if(p.role==='head'||p.role==='senior'){c.strokeStyle=RC[k];c.lineWidth=1.2;c.beginPath();c.arc(x,y,10.5,0,Math.PI*2);c.stroke()}
+ c.fillStyle='#fff';c.font=`700 9px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(p.name||'?').trim().slice(0,1).toUpperCase(),x,y+.5);c.textBaseline='alphabetic'}
+const lerp=(a,b,k)=>({x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k});
+const pR=pl=>pl.sz/2*(pl.sh==='round'?1:1.42)+9;
+function route(a,b){let pts=[a,b];if(!S.pillars.length)return pts;
+ for(let pass=0;pass<4;pass++){let ch=false;const out=[pts[0]];
+  for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i],dx=q.x-p.x,dy=q.y-p.y,L2=dx*dx+dy*dy||1;let hit=null;
+   for(const pl of S.pillars){const r=pR(pl),t=Math.max(0,Math.min(1,((pl.x-p.x)*dx+(pl.y-p.y)*dy)/L2)),cx=p.x+dx*t,cy=p.y+dy*t,d=Math.hypot(pl.x-cx,pl.y-cy);
+    if(d<r&&t>.03&&t<.97&&(!hit||t<hit.t))hit={pl,t,cx,cy,d,r}}
+   if(hit){let nx=hit.cx-hit.pl.x,ny=hit.cy-hit.pl.y;if(hit.d<.5){nx=-dy;ny=dx}const n=Math.hypot(nx,ny)||1;out.push({x:hit.pl.x+nx/n*(hit.r+4),y:hit.pl.y+ny/n*(hit.r+4)});ch=true}
+   out.push(q)}
+  pts=out;if(!ch)break}
+ return pts}
+function along(pts,k){k=Math.max(0,Math.min(1,k));if(pts.length<3)return lerp(pts[0],pts[pts.length-1],k);
+ const seg=[];let tot=0;for(let i=1;i<pts.length;i++){const l=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);seg.push(l);tot+=l}
+ let d=k*tot;for(let i=0;i<seg.length;i++){if(d<=seg[i]||i===seg.length-1)return lerp(pts[i],pts[i+1],seg[i]?Math.min(1,d/seg[i]):1);d-=seg[i]}return pts[pts.length-1]}
+const walk=(a,b,k)=>along(route(a,b),k);
+function tBox(t){const g=geom(t),e=(t.shape==='booth'?20:18);return{hw:g.w/2+e,hh:g.h/2+e}}
+function crowd(t,x,y){const b=tBox(t);let a=0;
+ for(const o of S.tables){if(o===t)continue;const c=tBox(o),ox=b.hw+c.hw-Math.abs(x-o.x),oy=b.hh+c.hh-Math.abs(y-o.y);if(ox>0&&oy>0)a+=ox*oy}
+ for(const pl of S.pillars){const pr=pl.sz/2+3,ox=b.hw+pr-Math.abs(x-pl.x),oy=b.hh+pr-Math.abs(y-pl.y);if(ox>0&&oy>0)a+=ox*oy*50}
+ if(x-b.hw<6||x+b.hw>W-6||y-b.hh<6||y+b.hh>H-6)a+=1e6;return a}
+function pushTables(){
+ for(let it=0;it<6;it++){let moved=false;
+  for(const t of S.tables){const b=tBox(t);
+   for(const pl of S.pillars){const pr=pl.sz/2+3,ox=b.hw+pr-Math.abs(t.x-pl.x),oy=b.hh+pr-Math.abs(t.y-pl.y);if(!(ox>0&&oy>0))continue;
+    const r10=v=>Math.ceil(v/10)*10,cands=[];
+    for(const [dx,dy] of [[pl.x+pr+b.hw-t.x,0],[pl.x-pr-b.hw-t.x,0],[0,pl.y+pr+b.hh-t.y],[0,pl.y-pr-b.hh-t.y]]){const x=t.x+Math.sign(dx)*r10(Math.abs(dx)),y=t.y+Math.sign(dy)*r10(Math.abs(dy));cands.push({x,y,score:crowd(t,x,y)+Math.hypot(x-t.x,y-t.y)})}
+    cands.sort((a,b)=>a.score-b.score);t.x=cands[0].x;t.y=cands[0].y;moved=true}}
+  if(!moved)break}}
+let T=1080,playing=false,editing=false,selT=-1,selP=-1,pal='',heatOn=false,speed=6;
+function draw(){if(!RES)return;const c=ctx;c.setTransform(scale,0,0,scale,0,0);c.textAlign='center';
+ c.drawImage(floor,0,0);
+ if(bgImg&&bgImg.complete&&bgImg.naturalWidth){c.fillStyle='#fbfbfa';c.fillRect(13,13,W-26,H-26);const k=Math.min((W-26)/bgImg.naturalWidth,(H-26)/bgImg.naturalHeight),w=bgImg.naturalWidth*k,h=bgImg.naturalHeight*k;c.globalAlpha=S.bgOp;c.drawImage(bgImg,13+(W-26-w)/2,13+(H-26-h)/2,w,h);c.globalAlpha=1}
+ const K=S.kit;c.fillStyle='#eef0f2';c.fillRect(K.x,K.y,K.w,K.h);hatch(c,K.x,K.y,K.w,K.h,'#dde1e5');c.strokeStyle=LINE;c.lineWidth=1.3;c.strokeRect(K.x+.5,K.y+.5,K.w-1,K.h-1);
+ c.strokeStyle='#a3abb2';c.lineWidth=1;for(let i=0;i<4;i++){const x=K.x+12+i*((K.w-24)/4);c.strokeRect(x+.5,K.y+10.5,(K.w-24)/4-6,22);c.beginPath();c.arc(x+((K.w-24)/4-6)/2,K.y+21,6,0,Math.PI*2);c.stroke()}
+ c.fillStyle='#d3d8dc';c.fillRect(K.x+8,K.y+K.h-14,K.w-16,8);c.fillStyle='#5d6873';c.font=`600 10px ${FONT}`;c.fillText(tr('kitchen'),K.x+K.w/2,K.y+K.h-22);
+ const E=S.ent;c.fillStyle='#fbfbfa';c.fillRect(E.x-24,E.y+2,48,10);c.strokeStyle=LINE;c.lineWidth=1;c.beginPath();c.moveTo(E.x-24,E.y+6);c.lineTo(E.x-24,E.y-36);c.stroke();
+ c.beginPath();c.arc(E.x-24,E.y+6,42,-Math.PI/2,0);c.setLineDash([3,3]);c.stroke();c.setLineDash([]);c.fillStyle='#5d6873';c.font=`600 9.5px ${FONT}`;c.fillText(tr('entrance'),E.x+2,E.y-4);
+ S.pillars.forEach((q,i)=>{const h=q.sz/2;c.fillStyle='#2b3036';if(q.sh==='round'){c.beginPath();c.arc(q.x,q.y,h,0,Math.PI*2);c.fill()}else c.fillRect(q.x-h,q.y-h,q.sz,q.sz);
+  if(editing&&i===selP){c.strokeStyle=ACC;c.lineWidth=1.5;c.setLineDash([4,3]);c.strokeRect(q.x-h-8,q.y-h-8,q.sz+16,q.sz+16);c.setLineDash([])}});
+ const dirty=new Set(),occ=new Map();
+ for(const g of RES.groups){if(g.leave!=null&&T>=g.leave&&T<g.cleanEnd)g.tabs.forEach(i=>dirty.add(i));if(g.seat!=null&&T>=g.seat&&T<g.leave)g.tabs.forEach(i=>occ.set(i,(T-g.seat)/Math.max(1,g.leave-g.seat)))}
+ const span=S.close-S.open;
+ S.tables.forEach((t,i)=>{let heat=null;if(heatOn&&!editing){const h=RES.heat[i]||{min:0},u=Math.min(1,h.min/span);heat=`hsl(${205-195*u},${45+30*u}%,${58-12*u}%)`}
+  drawTable(t,i,{sel:editing&&i===selT,dirty:!editing&&dirty.has(i),occ:!editing&&occ.has(i)?occ.get(i):null,heat})});
+ if(heatOn&&!editing){S.tables.forEach((t,i)=>{const h=RES.heat[i]||{min:0,turns:0},g=geom(t);c.fillStyle=INK;c.font=`600 10.5px ${FONT}`;c.fillText(`${Math.round(Math.min(1,h.min/span)*100)}% · ${h.turns}×`,t.x,t.y+g.h/2+(t.shape==='booth'?30:26))});return}
+ if(editing)return;
+ const q=[],door={x:E.x,y:E.y-12},occList=[...occ.keys()];
+ for(const g of RES.groups){if(g.arr>T||g.noShow)continue;const col=GP[g.id%GP.length];
+  if(g.seat!=null&&T>=g.seat){const ts=g.tabs.map(i=>S.tables[i]).filter(Boolean);if(!ts.length)continue;const ch=ts.flatMap(t=>geom(t).ch);
+   if(T<g.leave&&ts.length>1){c.strokeStyle=ACC;c.lineWidth=1.2;c.setLineDash([3,3]);c.beginPath();c.moveTo(ts[0].x,ts[0].y);c.lineTo(ts[1].x,ts[1].y);c.stroke();c.setLineDash([])}
+   for(let k=0;k<g.size;k++){const p=ch[((g.off||0)+k)%ch.length];
+    if(T<g.seat+WALK){const w=walk(door,p,(T-g.seat)/WALK);dot(w.x,w.y,col,1)}
+    else if(T<g.leave)dot(p.x,p.y,col,1);
+    else if(T<g.leave+WALK){const w=walk(p,door,(T-g.leave)/WALK);dot(w.x,w.y,col,1-(T-g.leave)/WALK*.6)}}}
+  else if((g.seat!=null)||(g.balk!=null&&T<g.balk))q.push(g);
+  else if(g.balk!=null&&T<g.balk+1)for(let k=0;k<g.size;k++)dot(door.x-8+k*9,door.y+(T-g.balk)*14,'#c2483b',1-(T-g.balk))}
+ let n=0;for(const g of q.sort((a,b)=>a.arr-b.arr))for(let k=0;k<g.size;k++,n++)dot(E.x+34+(n%28)*12,E.y-20-Math.floor(n/28)*14,'#c2483b',1);
+ const wd=wdOf(viewDate),mT=Math.min(Math.floor(T),S.close-1),on=S.staff.filter(p=>onAt(p,viewDate,wd,mT)),kp={x:K.x+K.w/2,y:K.y+K.h+14};
+ const fl=on.filter(p=>ROLE[p.role].k==='floor'),ki=on.filter(p=>ROLE[p.role].k==='kitchen'),ho=on.filter(p=>ROLE[p.role].k==='host'),bu=on.filter(p=>ROLE[p.role].k==='busser');
+ fl.forEach((p,i)=>{if(!occList.length){staffP(kp.x-40+i*20,kp.y+10,p);return}
+  const sp=(p.speed||100)/100,cyc=T/(3/sp)+i*.37,tg=S.tables[occList[(Math.floor(cyc)+i*3)%occList.length]],ph=cyc%1,g=geom(tg),tp={x:tg.x+g.w/2+18,y:tg.y};
+  const pt=ph<.5?walk(kp,tp,Math.min(1,ph*2.4)):walk(tp,kp,Math.max(0,Math.min(1,(ph-.5)*2.4-.2)));staffP(pt.x,pt.y,p)});
+ ki.forEach((p,i)=>staffP(K.x+22+((i*36)%Math.max(1,K.w-40))+Math.sin(T*2*((p.speed||100)/100)+i)*5,K.y+54+Math.floor(i/4)*24,p));
+ ho.forEach((p,i)=>staffP(E.x+10+i*20,E.y-40,p));
+ const dl=[...dirty];bu.forEach((p,i)=>{const t=dl.length?S.tables[dl[i%dl.length]]:null;if(t){const g=geom(t);staffP(t.x-g.w/2-18,t.y,p)}else staffP(K.x-20-i*20,K.y+K.h-10,p)})}
+
+/* ---------- HUD + loop ---------- */
+let lastMin=-1;
+function hud(force){const m=Math.floor(T);if(m===lastMin&&!force)return;lastMin=m;
+ $('#clock').textContent=fm(m);$('#tl').value=m;
+ const p=RES.per.find(x=>x.m===m)||{seated:0,q:0},sl=RES.slots.find(s=>m>=s.s&&m<s.e),cl=m>=S.close;
+ const br=sl&&sl.cl;$('#lvBadge').textContent=cl?tr('closed'):br?tr('brk'):tr('pred',LV[sl?sl.pred:'low'].n);$('#lvBadge').style.background=cl||br?'#777':LV[sl.pred].c;
+ $('#hudDay').textContent=`${dayLong(viewDate)} · ${LV[S.scen].n}`;
+ $('#hudSeat').textContent=tr('seatC',p.seated,RES.seats);{const bt=new Set();for(const g of RES.groups)if(g.seat!=null&&m>=g.seat&&m<g.leave)g.tabs.forEach(i=>bt.add(i));$('#hudTab').textContent=tr('tabC',bt.size,S.tables.length)}$('#hudQ').textContent=tr('qC',p.q);markChart();if(m%5===0)renderWait()}
+let prev=performance.now();
+function loop(now){const dt=Math.min(.1,(now-prev)/1000);prev=now;
+ if(playing){T+=dt*speed;if(T>=S.close){T=S.close;setPlay(false)}}
+ draw();hud();requestAnimationFrame(loop)}
+function setPlay(v){playing=v;$('#play').textContent=tr(v?'pause':'play')}
+$('#play').onclick=()=>{if(editing)toggleEdit();if(T>=S.close-1)T=S.open;setPlay(!playing)};
+$('#tl').oninput=e=>{T=Number(e.target.value);hud(true)};
+$('#speed').onclick=e=>{const b=e.target.closest('button');if(!b)return;speed=Number(b.dataset.v);$$('#speed button').forEach(x=>x.classList.toggle('on',x===b));if(!playing&&!editing)setPlay(true)};
+$('#skip').onclick=()=>{if(editing)toggleEdit();setPlay(false);T=S.close-1;hud(true);heatOn=true;$('#heat').textContent=tr('heatOff');$('#results').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})};
+$('#heat').onclick=()=>{heatOn=!heatOn;$('#heat').textContent=tr(heatOn?'heatOff':'heat')};
+
+/* ---------- edit layout ---------- */
+let drag=null;
+const pt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}};
+const snap=v=>Math.round(v/10)*10;
+function hitP(p){for(let i=S.pillars.length-1;i>=0;i--){const q=S.pillars[i];if(Math.abs(p.x-q.x)<q.sz/2+8&&Math.abs(p.y-q.y)<q.sz/2+8)return i}return -1}
+function hitT(p){for(let i=S.tables.length-1;i>=0;i--){const t=S.tables[i],g=geom(t);if(Math.abs(p.x-t.x)<g.w/2+16&&Math.abs(p.y-t.y)<g.h/2+16)return i}return -1}
+const DEF_S={round:4,oval:6,square:4,rect:6,booth:4};
+cv.addEventListener('pointerdown',e=>{if(!editing)return;const p=pt(e),pi=hitP(p),i=pi>=0?-1:hitT(p),K=S.kit,E=S.ent;selP=-1;
+ if(pal==='pillar'&&pi<0&&i<0){S.pillars.push({x:snap(p.x),y:snap(p.y),sh:'sq',sz:22});selP=S.pillars.length-1;selT=-1;pushTables();renderTEdit();changed();return}
+ if(pi>=0){selP=pi;selT=-1;drag={k:'p',i:pi,dx:p.x-S.pillars[pi].x,dy:p.y-S.pillars[pi].y}}
+ else if(i>=0){selT=i;drag={k:'t',i,dx:p.x-S.tables[i].x,dy:p.y-S.tables[i].y}}
+ else if(Math.hypot(p.x-E.x,p.y-E.y)<30)drag={k:'e',dx:p.x-E.x,dy:p.y-E.y};
+ else if(p.x>K.x&&p.x<K.x+K.w&&p.y>K.y&&p.y<K.y+K.h)drag={k:'k',dx:p.x-K.x,dy:p.y-K.y};
+ else if(pal&&pal!=='pillar'){S.tables.push({x:snap(p.x),y:snap(p.y),s:DEF_S[pal],shape:pal});selT=S.tables.length-1;pushTables();changed()}
+ else selT=-1;
+ renderTEdit();if(drag)cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+ if(drag.k==='p'){const q=S.pillars[drag.i];q.x=cl(snap(p.x-drag.dx),20,W-20);q.y=cl(snap(p.y-drag.dy),20,H-20)}
+ if(drag.k==='t'){const t=S.tables[drag.i];t.x=cl(snap(p.x-drag.dx),40,W-40);t.y=cl(snap(p.y-drag.dy),40,H-40)}
+ if(drag.k==='e'){S.ent.x=cl(p.x-drag.dx,40,W-40);S.ent.y=cl(p.y-drag.dy,40,H-20)}
+ if(drag.k==='k'){S.kit.x=cl(snap(p.x-drag.dx),12,W-12-S.kit.w);S.kit.y=cl(snap(p.y-drag.dy),14,H-12-S.kit.h)}});
+cv.addEventListener('pointerup',()=>{if(drag){drag=null;pushTables();changed()}});
+function toggleEdit(){editing=!editing;setPlay(false);$('#edit').textContent=tr(editing?'doneL':'editL');$('#hudMode').hidden=!editing;if(!editing){selT=-1;selP=-1}renderTEdit()}
+function renderTEdit(){const q=S.pillars[selP];$('#pEdit').hidden=!q||!editing;if(q){$('#pzNum').textContent=q.sz;$$('#pShape button').forEach(b=>b.classList.toggle('on',b.dataset.ps===q.sh))}
+ const t=S.tables[selT];$('#tEdit').hidden=!t||!editing;if(!t)return;$('#sNum').textContent=t.s;$('#zNum').textContent=Math.round((t.z||1)*100)+'%';
+ $$('#tShape button').forEach(b=>b.classList.toggle('on',b.dataset.sh===(t.shape||'round')));$('#tRot').hidden=!(t.shape==='rect'||t.shape==='booth'||t.shape==='oval')}
+$('#edit').onclick=toggleEdit;
+$('#tShape').onclick=e=>{const b=e.target.closest('button'),t=S.tables[selT];if(!b||!t)return;t.shape=b.dataset.sh;renderTEdit();pushTables();changed()};
+$('#sMinus').onclick=()=>{const t=S.tables[selT];if(t&&t.s>1){t.s--;renderTEdit();pushTables();changed()}};
+$('#sPlus').onclick=()=>{const t=S.tables[selT];if(t&&t.s<14){t.s++;renderTEdit();pushTables();changed()}};
+$('#zMinus').onclick=()=>{const t=S.tables[selT];if(t){t.z=Math.max(.6,Math.round(((t.z||1)-.1)*10)/10);renderTEdit();pushTables();changed()}};
+$('#zPlus').onclick=()=>{const t=S.tables[selT];if(t){t.z=Math.min(1.8,Math.round(((t.z||1)+.1)*10)/10);renderTEdit();pushTables();changed()}};
+$('#tRot').onclick=()=>{const t=S.tables[selT];if(t){t.rot=t.rot?0:1;pushTables();changed()}};
+$('#del').onclick=()=>{if(selT>=0){S.tables.splice(selT,1);selT=-1;renderTEdit();changed()}};
+$('#palette').onclick=e=>{const b=e.target.closest('button');if(!b)return;pal=b.dataset.sh;$$('#palette button').forEach(x=>x.classList.toggle('on',x===b));if(!editing)toggleEdit()};
+$('#pShape').onclick=e=>{const b=e.target.closest('button'),q=S.pillars[selP];if(!b||!q)return;q.sh=b.dataset.ps;pushTables();renderTEdit();changed()};
+$('#pzMinus').onclick=()=>{const q=S.pillars[selP];if(q){q.sz=Math.max(12,q.sz-4);pushTables();renderTEdit();changed()}};
+$('#pzPlus').onclick=()=>{const q=S.pillars[selP];if(q){q.sz=Math.min(80,q.sz+4);pushTables();renderTEdit();changed()}};
+$('#pDel').onclick=()=>{if(selP>=0){S.pillars.splice(selP,1);selP=-1;renderTEdit();save()}};
+$('#clearT').onclick=()=>{S.tables=[];selT=-1;renderTEdit();changed()};
+$('#reset').onclick=()=>{const bg=S.bg,lang=S.lang;S=defaults(lang);if(bg)S.bg=bg;viewDate=S.date;initInputs();renderMenus();renderStaffList();renderAutoDays();renderPeriods();renderCosts();changed()};
+$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{S.bg=rd.result;bgImg=new Image();bgImg.src=S.bg;bgImg.onload=()=>{if(!editing)toggleEdit();save()}};rd.readAsDataURL(f)};
+$('#bgop').oninput=e=>{S.bgOp=Number(e.target.value);save()};
+$('#bgclear').onclick=()=>{S.bg=null;bgImg=null;save()};
+
+/* ---------- inputs ---------- */
+$$('.tabs button').forEach(b=>b.onclick=()=>{$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.tab))});
+function initInputs(){$('#date').value=S.date;$('#open').value=fm(S.open);$('#close').value=fm(S.close);$('#slot').value=S.slot;$('#bgop').value=S.bgOp;$('#bdate').value=viewDate;
+ $$('[data-k]').forEach(el=>{if(el.closest('#kmode'))return;const v=getP(el.dataset.k);if(el.type==='checkbox')el.checked=!!v;else el.value=v})}
+document.addEventListener('change',e=>{const el=e.target;if(!el.dataset||!el.dataset.k||el.closest('#kmode'))return;const k=el.dataset.k;
+ let v=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value;
+ if(el.type==='number'){if(el.value===''||isNaN(v))return;v=Math.max(Number(el.min||0),Math.min(Number(el.max||1e9),v))}
+ setP(k,v);if(k.startsWith('menu.')||k.startsWith('ops.')||k==='reset')S.type='custom';changed()});
+$('#date').onchange=e=>{if(e.target.value){S.date=e.target.value;viewDate=S.date;$('#bdate').value=viewDate;changed()}};
+$('#range').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.range=b.dataset.r;changed()};
+$('#slot').onchange=e=>{S.slot=Number(e.target.value);S.levels={low:{},mod:{},busy:{}};S.closed={};const r=S.rates;S.rates={};changed();if(Object.keys(r).length)$('#posMsg').textContent=tr('posCleared')};
+$('#open').onchange=$('#close').onchange=()=>{const o=toMin($('#open').value||'11:00'),c=toMin($('#close').value||'22:00');if(c>o+S.slot){S.open=o;S.close=c;S.levels={low:{},mod:{},busy:{}};S.closed={};S.rates={};T=Math.min(Math.max(T,o),c-1);changed()}};
+let emode='traffic';
+$('#emode').onclick=e=>{const b=e.target.closest('button');if(!b)return;emode=b.dataset.m;$$('#emode button').forEach(x=>x.classList.toggle('on',x===b));$('#trafficTools').hidden=emode!=='traffic';renderSlots()};
+$('#scenSeg').onclick=e=>{const b=e.target.closest('button');if(b)setScen(b.dataset.sc)};
+function setScen(sc){S.scen=sc;_adC.clear();RES=simulate(viewDate,S.scen,true);renderDetail();save()}
+$('#presets').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.p){S.preset=b.dataset.p;S.levels={low:{},mod:{},busy:{}}}else for(const s of slotList())S.levels[S.scen][s]=b.dataset.all;S.rates={};changed()};
+$('#slots').onclick=e=>{const b=e.target.closest('button');if(!b)return;const s=Number(b.dataset.s);
+ if(emode==='hours'){if(S.closed[s])delete S.closed[s];else S.closed[s]=1}else{if(S.closed[s])return;S.levels[S.scen][s]=ORDER[(ORDER.indexOf(levelAt(S.scen,s))+1)%3];delete S.rates[s]}changed()};
+$('#types').onclick=e=>{const b=e.target.closest('button');if(!b||!TYPES[b.dataset.t])return;const t=TYPES[b.dataset.t];S.type=b.dataset.t;S.menus=mkMenus(b.dataset.t,S.lang);S.menu={...t.menu};S.combine=t.combine;S.cps=t.cps;S.cookRate=t.cookRate;S.hold=t.hold;S.reset=t.reset;S.kmode=t.kmode;for(const bk of S.bookings)bk.menu=0;const ty=b.dataset.t,tb=TBOOK[ty];S.ops={...OPS[ty]};S.auto={...S.auto,perDay:[...tb.perDay],min:tb.min,max:tb.max,periods:tb.periods.map((x,i)=>({id:i+1,name:x[L()],from:x[2],to:x[3],share:x[4]}))};S.noShow=tb.noShow;S.takeout={...tb.takeout};initInputs();renderMenus();renderStaffList();renderAutoDays();renderPeriods();changed()};
+$('#kmode').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.kmode=b.dataset.k;renderStaffList();changed()};
+$('#lang').onclick=()=>{S.lang=S.lang==='en'?'zh':'en';applyLang();if(NI)renderAcct();renderMenus();renderStaffList();renderAutoDays();renderPeriods();renderCosts();changed()};
+function applyLang(){document.documentElement.lang=S.lang==='en'?'en':'zh-HK';
+ $$('[data-i]').forEach(el=>el.textContent=tr(el.dataset.i));$$('[data-ip]').forEach(el=>el.placeholder=tr(el.dataset.ip));$$('[data-ia]').forEach(el=>el.setAttribute('aria-label',tr(el.dataset.ia)));
+ $$('#palette [data-sh]').forEach(b=>{if(b.dataset.sh)b.textContent=tr('addSh',tr({round:'shRound',oval:'shOval',square:'shSquare',rect:'shRect',booth:'shBooth',pillar:'shPillar'}[b.dataset.sh]))});
+ $('#lang').textContent=S.lang==='en'?'中文':'English';{const sy=$('#sync');if(sy&&sy.dataset.k)sy.textContent=tr(sy.dataset.k,nowT())}$('#edit').textContent=tr(editing?'doneL':'editL');$('#play').textContent=tr(playing?'pause':'play');$('#heat').textContent=tr(heatOn?'heatOff':'heat')}
+
+/* ---------- POS ---------- */
+$('#posFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{$('#posText').value=rd.result};rd.readAsText(f)};
+$('#posApply').onclick=()=>{const sums={};let n=0;
+ for(const line of $('#posText').value.split(/\r?\n/)){const mt=line.match(/(\d{1,2}):(\d{2})\D+(\d+(?:\.\d+)?)/);if(!mt)continue;const m=Number(mt[1])*60+Number(mt[2]);if(m<S.open||m>=S.close)continue;const s=slotStart(m);sums[s]=(sums[s]||0)+Number(mt[3]);n++}
+ if(!n){$('#posMsg').textContent=tr('posNone');return}
+ S.rates={};for(const s of slotList())S.rates[s]=(sums[s]||0)*60/S.slot;
+ $('#posMsg').textContent=tr('posDone',Object.keys(sums).length);changed()};
+$('#posClear').onclick=()=>{S.rates={};$('#posMsg').textContent=tr('posCleared');changed()};
+
+/* ---------- menus ---------- */
+function renderMenus(){const one=S.menus.length<2;
+ $('#menus').innerHTML=S.menus.map(mu=>`<div class="mrow" data-id="${mu.id}"><div class="nm"><input type="text" data-f="name" value="${esc(mu.name)}" aria-label="${tr('mName')}"><button data-del="${mu.id}" ${one?'disabled':''}>${tr('mDel')}</button></div>
+  <label>${tr('mDur')}<input type="number" data-f="dur" min="5" max="400" value="${mu.dur}"></label><label>${tr('mPort')}<input type="number" data-f="port" min="0.5" max="20" step="0.1" value="${mu.port}"></label>
+  <label>${tr('mPrice')}<input type="number" data-f="price" min="0" value="${mu.price}"></label><label>${tr('mShare')}<input type="number" data-f="share" min="0" max="100" value="${mu.share}"></label>
+  <label class="w2">${tr('mWin')}<span class="win"><input type="time" data-f="from" value="${mu.from}"><input type="time" data-f="to" value="${mu.to}"></span></label></div>`).join('');
+ const sel=$('#bmenu'),v=sel.value;sel.innerHTML=`<option value="0">${tr('anyMenu')}</option>`+S.menus.map(mu=>`<option value="${mu.id}">${esc(mu.name)} · ${mu.dur} min</option>`).join('');sel.value=S.menus.some(m=>String(m.id)===v)?v:'0'}
+$('#menus').addEventListener('change',e=>{const el=e.target,row=el.closest('[data-id]');if(!row||!el.dataset.f)return;e.stopPropagation();const mu=S.menus.find(x=>x.id===Number(row.dataset.id));if(!mu)return;
+ let v=el.value;if(el.type==='number'){if(v===''||isNaN(Number(v)))return;v=Math.max(Number(el.min),Math.min(Number(el.max||1e6),Number(v)));el.value=v}else if(el.type==='text')v=v.trim()||tr('newMenu');else if(!v)return;
+ mu[el.dataset.f]=v;S.type='custom';if(el.dataset.f==='name'||el.dataset.f==='dur')renderMenus();changed()});
+$('#menus').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b||S.menus.length<2)return;const id=Number(b.dataset.del);S.menus=S.menus.filter(x=>x.id!==id);for(const bk of S.bookings)if(bk.menu===id)bk.menu=0;S.type='custom';renderMenus();changed()});
+$('#addMenu').onclick=()=>{S.menus.push({id:++uid,name:tr('newMenu'),dur:60,port:2,price:30,share:20,from:fm(S.open),to:fm(S.close)});S.type='custom';renderMenus();changed()};
+function renderMenuStats(){$('#menuStats').innerHTML=RES.mstat.map(x=>`<li>${x.n?tr('mStat',esc(x.mu.name),x.n,Math.round(x.avg),x.mu.dur):tr('mStatNone',esc(x.mu.name))}</li>`).join('')}
+
+/* ---------- staff ---------- */
+function renderStaffList(){$$('#kmode button').forEach(b=>b.classList.toggle('on',b.dataset.k===S.kmode));
+ const opts=Object.keys(ROLE).map(r=>`<option value="${r}">${roleName(r)}</option>`).join(''),ds7=STR.dshort[L()];
+ $('#staffList').innerHTML=S.staff.map(p=>`<div class="mrow" data-sid="${p.id}"><div class="nm"><input type="text" data-f="name" value="${esc(p.name)}" aria-label="${tr('name')}"><button data-sdel="${p.id}">${tr('sDel')}</button></div>
+  <label>${tr('role')}<select data-f="role">${opts.replace(`value="${p.role}"`,`value="${p.role}" selected`)}</select></label>
+  <label>${tr('speedL')}<input type="number" data-f="speed" min="30" max="200" step="5" value="${p.speed}"></label><label>${tr('pWage')}<input type="number" data-f="wage" min="0" value="${p.wage}"></label>
+  <label class="w2">${tr('shift1')}<span class="win"><input type="time" data-f="s1" value="${p.s1||''}"><input type="time" data-f="e1" value="${p.e1||''}"></span></label>
+  <label class="w2">${tr('shift2')}<span class="win"><input type="time" data-f="s2" value="${p.s2||''}"><input type="time" data-f="e2" value="${p.e2||''}"></span></label>
+  <div class="wall"><span class="unit">${tr('offH')}</span><div class="days7">${ds7.map((d,i)=>`<button type="button" data-off="${i}" class="${p.off.includes(i)?'on':''}" aria-pressed="${p.off.includes(i)}">${d}</button>`).join('')}</div></div></div>`).join('')}
+$('#staffList').addEventListener('change',e=>{const el=e.target,row=el.closest('[data-sid]');if(!row||!el.dataset.f)return;e.stopPropagation();const p=S.staff.find(x=>x.id===Number(row.dataset.sid));if(!p)return;
+ let v=el.value;const f=el.dataset.f;
+ if(el.type==='number'){if(v===''||isNaN(Number(v)))return;v=Math.max(Number(el.min),Math.min(Number(el.max||1e6),Number(v)));el.value=v}else if(el.type==='text')v=v.trim()||tr('newStaff');
+ if(f==='role'){const old=ROLE[p.role];if(p.speed===old.sp){p.speed=ROLE[v].sp;row.querySelector('[data-f=speed]').value=p.speed}if(p.wage===old.w){p.wage=ROLE[v].w;row.querySelector('[data-f=wage]').value=p.wage}}
+ p[f]=v;changed()});
+$('#staffList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const row=b.closest('[data-sid]'),p=row&&S.staff.find(x=>x.id===Number(row.dataset.sid));if(!p)return;
+ if(b.dataset.sdel){S.staff=S.staff.filter(x=>x!==p);renderStaffList();changed();return}
+ if(b.dataset.off!=null){const i=Number(b.dataset.off);p.off=p.off.includes(i)?p.off.filter(x=>x!==i):[...p.off,i];b.classList.toggle('on');b.setAttribute('aria-pressed',p.off.includes(i));changed()}});
+$('#addStaff').onclick=()=>{S.staff.push({id:++uid,name:tr('newStaff'),role:'server',speed:100,wage:19,s1:fm(S.open),e1:fm(Math.min(S.close,S.open+480)),s2:'',e2:'',off:[],offD:[],onD:[]});renderStaffList();changed()};
+const mergeRanges=sl=>{const o=[];for(const s of sl){const l=o[o.length-1];if(l&&l.e===s.s){l.e=s.e;l.n=Math.max(l.n,s.n);l.h=Math.min(l.h,s.h)}else o.push({s:s.s,e:s.e,n:s.n,h:s.h})}return o};
+function renderRec(){const sl=RES.slots,f=mergeRanges(sl.filter(s=>s.shortF).map(s=>({s:s.s,e:s.e,n:s.needS,h:s.fl}))),k=mergeRanges(sl.filter(s=>s.shortK).map(s=>({s:s.s,e:s.e,n:s.needC,h:s.ki}))),tips=[];
+ const fmt=r=>r.map(x=>tr('rNeed',`${fm(x.s)}–${fm(x.e)}`,x.n.toFixed(1),x.h.toFixed(1))).join('；');
+ if(f.length)tips.push(tr('rShortF',fmt(f)));if(k.length)tips.push(tr('rShortK',fmt(k)));
+ if(sl.some(s=>!s.cl&&s.arr>0&&s.ho===0))tips.push(tr('rHost'));
+ if(sl.some(s=>!s.cl&&s.arr>0&&s.bu===0))tips.push(tr('rBusser',S.reset,Math.round(S.reset*1.6)));
+ if(RES.lost>0)tips.push(tr('rLost',RES.lost,Math.round(RES.lost*avgPrice()).toLocaleString()));if(!tips.length)tips.push(tr('rFine'));
+ $('#rec').innerHTML=`<b>${tr('recH',dayLong(viewDate),LV[S.scen].n)}</b><ul style="margin:6px 0;padding-left:18px">${tips.map(t=>`<li>${t}</li>`).join('')}</ul>${tr('rRev',RES.revenue.toLocaleString(),RES.toOrders,RES.labour.toLocaleString(),RES.revenue?Math.round(RES.labour/RES.revenue*100):0)}`}
+
+/* ---------- auto bookings ---------- */
+function renderAutoDays(){const ds7=STR.dshort[L()];$('#adays').innerHTML=ds7.map((d,i)=>`<label>${d}<input type="number" min="0" max="200" data-ad="${i}" value="${S.auto.perDay[i]}"></label>`).join('')}
+$('#adays').addEventListener('change',e=>{const el=e.target;if(el.dataset.ad==null)return;e.stopPropagation();const v=Number(el.value);if(el.value===''||isNaN(v))return;S.auto.perDay[Number(el.dataset.ad)]=Math.max(0,Math.min(200,Math.round(v)));el.value=S.auto.perDay[Number(el.dataset.ad)];changed()});
+function renderAutoSum(){if(!S.auto.on){$('#autoSum').textContent=tr('autoOff');return}
+ const v=genBookings(viewDate,S.scen),dl=rangeDates().map(d=>genBookings(d,S.scen)),all=dl.flat(),rej=dl.reduce((a,x)=>a+(x.rejected||0),0);$('#autoSum').textContent=tr('autoSum',dayLong(viewDate),v.length,v.reduce((a,b)=>a+b.size,0),all.length,all.reduce((a,b)=>a+b.size,0))+(rej?' '+tr('autoRej',rej):'')}
+
+function renderPeriods(){const ps=S.auto.periods,tw=ps.reduce((a,x)=>a+Math.max(0,Number(x.share)||0),0)||1;
+ $('#autoPeriods').innerHTML=ps.map(pr=>`<div class="mrow" data-pid="${pr.id}"><div class="nm"><input type="text" data-f="name" value="${esc(pr.name)}" aria-label="${tr('apName')}"><button data-pdel="${pr.id}" ${ps.length<2?'disabled':''}>${tr('mDel')}</button></div>
+  <label class="w2">${tr('apWin')}<span class="win"><input type="time" data-f="from" value="${pr.from}"><input type="time" data-f="to" value="${pr.to}"></span></label>
+  <label>${tr('apShare')}<input type="number" data-f="share" min="0" max="100" value="${pr.share}"></label><span class="unit" style="align-self:center">${tr('apPct',Math.round(Math.max(0,Number(pr.share)||0)/tw*100))}</span></div>`).join('')}
+$('#autoPeriods').addEventListener('change',e=>{const el=e.target,row=el.closest('[data-pid]');if(!row||!el.dataset.f)return;e.stopPropagation();const pr=S.auto.periods.find(x=>x.id===Number(row.dataset.pid));if(!pr)return;
+ let v=el.value;if(el.type==='number'){if(v===''||isNaN(Number(v)))return;v=Math.max(0,Math.min(100,Number(v)))}else if(el.type==='text')v=v.trim()||tr('newPeriod');else if(!v)return;
+ pr[el.dataset.f]=v;renderPeriods();changed()});
+$('#autoPeriods').addEventListener('click',e=>{const b=e.target.closest('[data-pdel]');if(!b||S.auto.periods.length<2)return;S.auto.periods=S.auto.periods.filter(x=>x.id!==Number(b.dataset.pdel));renderPeriods();changed()});
+$('#addPeriod').onclick=()=>{S.auto.periods.push({id:++uid,name:tr('newPeriod'),from:'14:30',to:'16:30',share:10});renderPeriods();changed()};
+
+/* ---------- bookings, calendar, waitlist ---------- */
+const gDate=(date,m,dur)=>{const d=date.replace(/-/g,''),f=x=>`${d}T${pad(Math.floor(x/60)%24)}${pad(x%60)}00`;return`${f(m)}/${f(m+dur)}`};
+function calLink(b){const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Vancouver';
+ return'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(`${b.name} (${b.size})`)+'&dates='+gDate(b.date||S.date,toMin(b.time),Math.round(avgDine()))+'&ctz='+encodeURIComponent(tz)+'&details='+encodeURIComponent('DinnerRush')}
+$('#ics').onclick=async()=>{const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DinnerRush//EN'];
+ for(const b of S.bookings){const[a,z]=gDate(b.date||S.date,toMin(b.time),Math.round(avgDine())).split('/');lines.push('BEGIN:VEVENT',`UID:${b.id}@dinnerrush`,`DTSTAMP:${a}`,`DTSTART:${a}`,`DTEND:${z}`,`SUMMARY:${b.name} (${b.size})`,'END:VEVENT')}
+ lines.push('END:VCALENDAR');try{await navigator.clipboard.writeText(lines.join('\r\n'));$('#icsMsg').textContent=tr('copied')}catch(e){$('#icsMsg').textContent=tr('copyFail')}};
+function renderBook(){const Lb=[...S.bookings].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||toMin(a.time)-toMin(b.time));let last='';
+ $('#blist').innerHTML=Lb.length?Lb.map(b=>{const bd=b.date||S.date;let h='';if(bd!==last){last=bd;h=`<li class="dh">${dayLong(bd)}</li>`}
+  const g=bd===viewDate?RES.groups.find(x=>x.book&&x.bid===b.id):null,bm=toMin(b.time);let w='';
+  if(bm<S.open||bm>=S.close)w=`<span class="warn">${tr('wHours')}</span>`;else if(S.closed[slotStart(bm)])w=`<span class="warn">${tr('wClosed')}</span>`;else if(g&&g.noFit)w=`<span class="warn">${tr('wNoFit')}</span>`;
+  else if(g&&g.noShow)w=`<span class="warn">${tr('wNoShow')}</span>`;
+  else if(g&&g.seat!=null){const wt=Math.round(g.seat-Math.max(g.arr,bm));w=(g.tabs.length>1?`<span class="ok">${tr('wCombo')}</span>`:'')+(wt>=3?`<span class="warn">${tr('wWait',wt)}</span>`:`<span class="ok">${tr('wOk')}</span>`)}
+  const mn=S.menus.find(x=>x.id===b.menu);
+  return h+`<li><time>${esc(b.time)}</time><span>${esc(b.name)}${mn?` · ${esc(mn.name)}`:''}${w}</span><span>${b.size} ${tr('ppl')}</span><a href="${calLink(b)}" target="_blank" rel="noopener">${tr('cal')}</a><button data-id="${b.id}" aria-label="×">×</button></li>`}).join(''):`<li style="display:block;color:var(--mut)">${tr('noBook')}</li>`}
+$('#blist').onclick=e=>{const b=e.target.closest('button');if(b){S.bookings=S.bookings.filter(x=>x.id!==Number(b.dataset.id));changed()}};
+$('#bform').onsubmit=e=>{e.preventDefault();const n=$('#bname').value.trim();if(!n)return;S.bookings.push({id:++uid,name:n,date:$('#bdate').value||viewDate,time:$('#btime').value,size:Math.max(1,Number($('#bsize').value)||2),menu:Number($('#bmenu').value)||0});$('#bname').value='';changed()};
+function quote(m,size){const p=RES.per.find(x=>x.m===Math.floor(m))||{seated:0,q:0},sl=RES.slots.find(s=>m>=s.s&&m<s.e);
+ if(!p.q&&p.seated+size<=RES.seats*.85)return 0;return Math.max(5,Math.round(Math.max(sl?sl.wait:0,(p.q+size)*RES.AD/Math.max(1,RES.seats))/5)*5)}
+function renderWait(){const Lw=S.waitlist;
+ $('#wlist').innerHTML=Lw.length?Lw.map(w=>`<li class="${w.called?'called':''}"><time>${fm(w.at)}</time><span>${esc(w.name)}<span class="${w.called?'ok':'warn'}">${w.called?tr('calledAt',fm(w.called)):tr('quote',quote(w.at,w.size))}</span></span><span>${w.size} ${tr('ppl')}</span><button data-c="${w.id}" ${w.called?'disabled':''}>${tr('call')}</button><button data-x="${w.id}" aria-label="×">×</button></li>`).join(''):`<li style="display:block;color:var(--mut)">${tr('noWait')}</li>`}
+$('#wform').onsubmit=e=>{e.preventDefault();const n=$('#wname').value.trim();if(!n)return;S.waitlist.push({id:++uid,name:n,size:Math.max(1,Number($('#wsize').value)||2),at:Math.floor(T),called:0});$('#wname').value='';renderWait();save()};
+$('#wlist').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.x)S.waitlist=S.waitlist.filter(w=>w.id!==Number(b.dataset.x));else{const w=S.waitlist.find(w=>w.id===Number(b.dataset.c));if(w)w.called=Math.floor(T)}renderWait();save()};
+
+/* ---------- panels ---------- */
+function renderSlots(){$$('#scenSeg button').forEach(b=>b.classList.toggle('on',b.dataset.sc===S.scen));$$('#range button').forEach(b=>b.classList.toggle('on',b.dataset.r===S.range));
+ $('#slots').innerHTML=RES.slots.map(x=>x.cl?`<button data-s="${x.s}" style="background:var(--off)" aria-label="${fm(x.s)} ${tr('closedS')}">${fm(x.s)}<small>${tr('closedS')}</small>–</button>`:
+  `<button data-s="${x.s}" style="background:${LV[x.input].c}" aria-label="${fm(x.s)} ${LV[x.input].n}">${x.pos?'<i>POS</i>':''}${fm(x.s)}<small>${x.input==='mod'?'MOD':LV[x.input].n}</small>${Math.round(x.occ*100)}%</button>`).join('');
+ $$('#presets [data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===S.preset&&!Object.values(S.levels).some(o=>Object.keys(o).length)));
+ $('#slotNote').textContent=emode==='hours'?tr('slotNoteH'):tr('slotNoteT',dayLong(viewDate));
+ $('#dayName').textContent=STR.days[L()][wdOf(S.date)]}
+function renderMenu(){$$('#types button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.type));$('#opsNote').textContent=tr({cha:'opCha',casual:'opCasual',fine:'opFine'}[S.type]||'opCustom');
+ const dw=RES.dw,bins=12,mx=Math.max(30,dw[dw.length-1]||60),bw=Math.ceil(mx/bins/5)*5,cnt=Array(bins).fill(0);for(const d of dw)cnt[Math.min(bins-1,Math.floor(d/bw))]++;
+ const top=Math.max(1,...cnt);$('#hist').innerHTML=cnt.map((c,i)=>`<div style="height:${c/top*100}%" title="${i*bw}–${(i+1)*bw} min: ${c}"></div>`).join('');
+ $('#histx').innerHTML=`<span>0</span><span>${bw*bins/2} min</span><span>${bw*bins} min</span>`;
+ $('#dwellNote').textContent=tr('dwellNote',dayLong(viewDate),Math.round(RES.dwAvg),Math.round(RES.p10),Math.round(RES.p90))}
+const scopeTxt=()=>{const d=rangeDates();return d.length>1?`${dayLong(d[0])} – ${dayLong(d[d.length-1])}`:dayLong(d[0])};
+function renderKpis(){const t=totals(S.scen),day=S.range==='day';
+ $('#scope').textContent=tr('scope',scopeTxt(),LV[S.scen].n);
+ const peak=day?fm(RES.peak):dayLong(t.pk.date);
+ $('#kpis').innerHTML=[[t.served.toLocaleString(),'kServed'],[t.lost.toLocaleString(),'kLost'],[peak,'kPeak'],[tr('minS',t.wait),'kWait'],['$'+t.rev.toLocaleString(),'kRev'],[t.pct+'%','kLab']].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${tr(s)}</span></div>`).join('');
+ $('#seatInfo').textContent=S.maxCap>0?tr('seatInfoCap',S.tables.length,seatsTotal(),S.maxCap):tr('seatInfo',S.tables.length,seatsTotal())}
+function renderCards(){$('#cards').innerHTML=ORDER.map(sc=>{const t=totals(sc);return`<button class="card ${sc===S.scen?'on':''}" data-sc="${sc}"><span class="pill" style="background:${LV[sc].c}">${LV[sc].n}</span><span class="big">${t.served.toLocaleString()} <small style="font-size:14px;font-weight:500;color:var(--mut)">${tr('kServed')}</small></span>
+ <dl><dt>${tr('kLost')}</dt><dd>${t.lost}</dd><dt>${tr('kWait')}</dt><dd>${tr('minS',t.wait)}</dd><dt>${tr('kRev')}</dt><dd>$${t.rev.toLocaleString()}</dd><dt>${tr('kLab')}</dt><dd>${t.pct}%</dd><dt>${tr('cShort')}</dt><dd>${t.short}</dd></dl></button>`}).join('')}
+$('#cards').onclick=e=>{const b=e.target.closest('[data-sc]');if(b)setScen(b.dataset.sc)};
+function renderDaily(){const show=ALL.length>1;$('#dailyBox').hidden=!show;if(!show)return;drawDChart();
+ $('#dtbl').innerHTML=`<tr><th>${tr('thDate')}</th><th>${tr('thStaffOn')}</th>${ORDER.map(sc=>`<th>${tr('thServedSc',LV[sc].n)}</th>`).join('')}<th>${tr('thLostSc',LV[S.scen].n)}</th><th>${tr('thRevSc',LV[S.scen].n)}</th><th>${tr('thLab')}</th><th>${tr('thShort')}</th></tr>`+
+  ALL.map(d=>{const a=d[S.scen];return`<tr class="click ${d.date===viewDate?'sel':''}" data-d="${d.date}"><td>${dayLong(d.date)}</td><td>${a.staffOn}</td>${ORDER.map(sc=>`<td>${d[sc].served}</td>`).join('')}<td>${a.lost||''}</td><td>$${a.revenue.toLocaleString()}</td><td>$${a.labour.toLocaleString()}</td><td>${a.short?`<span class="pill" style="background:var(--busy)">${a.short}</span>`:''}</td></tr>`}).join('')}
+$('#dtbl').onclick=e=>{const r=e.target.closest('[data-d]');if(r)setView(r.dataset.d)};
+function setView(d){viewDate=d;_adC.clear();$('#bdate').value=d;RES=simulate(viewDate,S.scen,true);renderDetail();if(S.range!=='day')$('#chartTitle').scrollIntoView({block:'start',behavior:'smooth'})}
+function renderTable(){const pk=RES.slots.reduce((a,s)=>s.avg>a.avg?s:a,RES.slots[0]||{avg:0,s:0,occ:0});
+ $('#chartTitle').textContent=tr('dayH',dayLong(viewDate),LV[S.scen].n,fm(pk.s),Math.round((pk.occ||0)*100));
+ $('#tbl').innerHTML=`<tr>${['thSlot','thSet','thBook','thArr','thAvg','thQ','thWait','thLost','thPred','thNeed','thNeedK'].map(k=>`<th>${tr(k)}</th>`).join('')}</tr>`+
+ RES.slots.map(s=>`<tr><td>${fm(s.s)}–${fm(s.e)}</td><td>${s.cl?`<span class="pill" style="background:var(--off)">${tr('closedS')}</span>`:`<span class="pill" style="background:${LV[s.input].c}">${s.pos?'POS':LV[s.input].n}</span>`}</td><td>${s.books||''}</td><td>${s.arr}</td><td>${Math.round(s.avg)} (${Math.round(s.occ*100)}%)</td><td>${s.maxQ}</td><td>${s.wait>=1?tr('minS',Math.round(s.wait)):'–'}</td><td>${s.lost||''}</td><td>${s.cl?'–':`<span class="pill" style="background:${LV[s.pred].c}">${LV[s.pred].n}</span>`}</td><td style="${s.shortF?'color:var(--busy);font-weight:700':''}">${s.needS.toFixed(1)} / ${s.fl.toFixed(1)}</td><td style="${s.shortK?'color:var(--busy);font-weight:700':''}">${s.needC.toFixed(1)} / ${s.ki.toFixed(1)}</td></tr>`).join('')}
+
+/* ---------- roster ---------- */
+const shiftTxt=p=>[p.s1&&p.e1?`${p.s1.replace(':00','')}–${p.e1.replace(':00','')}`:'',p.s2&&p.e2?`${p.s2.replace(':00','')}–${p.e2.replace(':00','')}`:''].filter(Boolean).join(' · ');
+function renderRoster(){const days=Array.from({length:7},(_,i)=>addD(viewDate,i)),ds7=STR.dshort[L()];
+ $('#roster').innerHTML=`<tr><th></th>${days.map(d=>`<th class="${wdOf(d)>=5?'we':''} ${d===viewDate?'sel':''}">${ds7[wdOf(d)]}<small>${sDate(d)}</small></th>`).join('')}</tr>`+
+  S.staff.map(p=>`<tr><td><b>${esc(p.name)}</b><small>${roleName(p.role)} · ${p.speed}%</small></td>${days.map(d=>{const wd=wdOf(d),on=onDay(p,d,wd),ex=(p.onD||[]).includes(d);
+   return`<td><button data-p="${p.id}" data-d="${d}" class="${on?(ex?'ex':''):'off'}">${on?(ex?tr('extra')+'<br>':'')+(shiftTxt(p)||'–'):tr('off')}</button></td>`}).join('')}</tr>`).join('')}
+$('#roster').onclick=e=>{const b=e.target.closest('button[data-p]');if(!b)return;const p=S.staff.find(x=>x.id===Number(b.dataset.p)),d=b.dataset.d,wd=wdOf(d);if(!p)return;
+ p.offD=p.offD||[];p.onD=p.onD||[];
+ if(p.onD.includes(d))p.onD=p.onD.filter(x=>x!==d);else if(p.offD.includes(d))p.offD=p.offD.filter(x=>x!==d);else if(p.off.includes(wd))p.onD.push(d);else p.offD.push(d);changed()};
+function renderGantt(){const span=S.close-S.open,pc=m=>Math.max(0,Math.min(100,(m-S.open)/span*100)),wd=wdOf(viewDate),on=staffOnDay(viewDate),ticks=[];
+ for(let m=Math.ceil(S.open/120)*120;m<=S.close;m+=120)ticks.push(m);
+ $('#dayRosterH').textContent=tr('dayRosterH',dayLong(viewDate),LV[S.scen].n);
+ const bar=(p,a,b)=>a&&b?`<div class="bar" style="left:${pc(toMin(a))}%;width:${pc(toMin(b))-pc(toMin(a))}%;background:${RCOL[ROLE[p.role].k]}" title="${a}–${b}">${a}–${b}</div>`:'';
+ const cov=(key,have)=>RES.slots.map(s=>{const n=s[key],h=s[have],short=key==='needS'?s.shortF:s.shortK,bg=s.cl?'var(--off)':short?'var(--busy)':h>=n+2?'var(--low)':'#9a8a91';
+  return`<div class="cov" style="left:${pc(s.s)}%;width:${pc(s.e)-pc(s.s)}%;background:${bg}" title="${fm(s.s)} ${n.toFixed(1)} / ${h.toFixed(1)}">${S.slot>=30&&!s.cl?`${Math.ceil(n)}/${Math.round(h*10)/10}`:''}</div>`}).join('');
+ $('#gantt').innerHTML=`<span></span><div class="axis">${ticks.map(m=>`<span style="left:${pc(m)}%">${fm(m)}</span>`).join('')}</div><span></span>`+
+  (on.length?on.map(p=>`<span>${esc(p.name)}<small>${roleName(p.role)}</small></span><div class="track">${bar(p,p.s1,p.e1)}${bar(p,p.s2,p.e2)}</div><span class="hrs">${tr('hrsU',shiftHrs(p).toFixed(1))}</span>`).join(''):`<span></span><span class="note">${tr('nobodyOn')}</span><span></span>`)+
+  `<span><b>${tr('covF')}</b></span><div class="track">${cov('needS','fl')}</div><span></span><span><b>${tr('covK')}</b></span><div class="track">${cov('needC','ki')}</div><span></span>`;
+ $('#labNote').textContent=tr('labNote',RES.labour.toLocaleString(),LV[S.scen].n,RES.revenue.toLocaleString(),RES.revenue?Math.round(RES.labour/RES.revenue*100):0)}
+
+/* ---------- costs + P&L ---------- */
+const UNITS=[['day','uDay'],['week','uWeek'],['month','uMonth'],['pctS','uPctS'],['pctL','uPctL']];
+const perDayFixed=c=>c.u==='day'?c.amt:c.u==='week'?c.amt/7:c.u==='month'?c.amt*12/365:0;
+function renderCosts(){$('#costList').innerHTML=S.costs.map(c=>`<div class="mrow" data-cid="${c.id}"><div class="nm"><input type="text" data-f="name" value="${esc(c.name)}" aria-label="${tr('cName')}"><button data-cdel="${c.id}">${tr('mDel')}</button></div>
+ <label>${tr('cAmt')}<input type="number" data-f="amt" min="0" step="any" value="${c.amt}"></label><label>${tr('cUnit')}<select data-f="u">${UNITS.map(([v,k])=>`<option value="${v}" ${v===c.u?'selected':''}>${tr(k)}</option>`).join('')}</select></label></div>`).join('')}
+$('#costList').addEventListener('change',e=>{const el=e.target,row=el.closest('[data-cid]');if(!row||!el.dataset.f)return;e.stopPropagation();const c=S.costs.find(x=>x.id===Number(row.dataset.cid));if(!c)return;
+ let v=el.value;if(el.type==='number'){if(v===''||isNaN(Number(v)))return;v=Math.max(0,Number(v))}else if(el.type==='text')v=v.trim()||tr('newCost');c[el.dataset.f]=v;renderPnl();scheduleReport();save()});
+$('#costList').addEventListener('click',e=>{const b=e.target.closest('[data-cdel]');if(!b)return;S.costs=S.costs.filter(x=>x.id!==Number(b.dataset.cdel));renderCosts();renderPnl();scheduleReport();save()});
+$('#addCost').onclick=()=>{S.costs.push({id:++uid,name:tr('newCost'),amt:0,u:'month'});renderCosts();save()};
+$('#pnlView').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.pnlView=b.dataset.v;renderPnl();save()};
+function pnl(sc){const A=ALL.map(d=>d[sc]),N=Math.max(1,A.length),rev=A.reduce((a,x)=>a+x.revenue,0)/N,lab=A.reduce((a,x)=>a+x.labour,0)/N,served=A.reduce((a,x)=>a+x.served,0)/N;
+ const lines=S.costs.map(c=>({c,v:c.u==='pctS'?rev*c.amt/100:c.u==='pctL'?lab*c.amt/100:perDayFixed(c)}));
+ const tot=lab+lines.reduce((a,x)=>a+x.v,0),profit=rev-tot,vr=S.costs.filter(c=>c.u==='pctS').reduce((a,c)=>a+c.amt/100,0);
+ const fixed=lab+lines.filter(x=>x.c.u!=='pctS').reduce((a,x)=>a+x.v,0),be=vr<1?fixed/(1-vr):Infinity,spend=served?rev/served:avgPrice();
+ const monthly=profit*365/12,pay=S.invest>0&&monthly>0?S.invest/monthly:null;
+ return{rev,lab,lines,tot,profit,margin:rev?profit/rev:0,be,beG:spend?be/spend:0,monthly,pay}}
+function renderPnl(){if(!ALL.length)return;const mult={day:1,week:7,month:365/12}[S.pnlView]||1,P={};ORDER.forEach(sc=>P[sc]=pnl(sc));
+ $$('#pnlView button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.pnlView));
+ $('#pnlMeta').textContent=tr('pnlMeta',scopeTxt(),tr({day:'pvDayT',week:'pvWeekT',month:'pvMonthT'}[S.pnlView]));
+ const money=v=>(v<0?'−':'')+'$'+Math.abs(Math.round(v)).toLocaleString(),be=P.mod.be;
+ $('#beCards').innerHTML=ORDER.map(sc=>{const x=P[sc],gap=x.rev-x.be;return`<div class="card" style="cursor:default"><span class="pill" style="background:${LV[sc].c}">${LV[sc].n}</span>
+  <span class="big ${x.profit>=0?'pos':'neg'}" style="font-size:26px">${money(x.profit*mult)}</span><dl><dt>${tr('plMargin')}</dt><dd>${Math.round(x.margin*100)}%</dd>
+  <dt>${tr('payH')}</dt><dd class="${x.pay==null&&S.invest>0?'neg':''}">${x.pay!=null?tr('monthsU',x.pay<1?'<1':x.pay.toFixed(1)):S.invest>0?tr('payNo'):'–'}</dd></dl>
+  <p class="note" style="margin:8px 0 0">${isFinite(x.be)?(gap>=0?tr('beAbove',Math.round(x.rev).toLocaleString(),money(gap)):tr('beBelow',Math.round(x.rev).toLocaleString(),money(-gap))):tr('beNever')}</p></div>`}).join('')+
+  `<div class="card" style="cursor:default;background:var(--soft)"><span class="unit">Break-even</span><p style="margin:8px 0 0;font-size:15px">${isFinite(be)?tr('beT',Math.round(be).toLocaleString(),Math.round(P.mod.beG)):tr('beNever')}</p></div>`;
+ const row=(label,f,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${label}</td>${ORDER.map(sc=>`<td>${f(P[sc])}</td>`).join('')}</tr>`;
+ $('#pnlTbl').innerHTML=`<tr><th></th>${ORDER.map(sc=>`<th><span class="pill" style="background:${LV[sc].c}">${LV[sc].n}</span></th>`).join('')}</tr>`+
+  row(`<b>${tr('plRev')}</b>`,x=>`<b>${money(x.rev*mult)}</b>`)+row(tr('plLab'),x=>'−'+money(x.lab*mult))+
+  S.costs.map((c,i)=>row(`${esc(c.name)} <small class="unit">${c.u==='pctS'||c.u==='pctL'?c.amt+'%':tr(UNITS.find(u=>u[0]===c.u)[1])}</small>`,x=>'−'+money(x.lines[i].v*mult))).join('')+
+  row(tr('plTot'),x=>'−'+money(x.tot*mult))+row(`<b>${tr('plProfit')}</b>`,x=>`<b class="${x.profit>=0?'pos':'neg'}">${money(x.profit*mult)}</b>`,'sel')+row(tr('plMargin'),x=>Math.round(x.margin*100)+'%');
+ $('#payNote').textContent=S.invest>0?tr('payNote',Number(S.invest).toLocaleString()):tr('payNoInv');drawPay(P)}
+const pch=$('#payChart');let lastP=null;
+function drawPay(P){lastP=P||lastP;P=lastP;if(!P)return;const Wc=pch.clientWidth,Hc=pch.clientHeight;if(!Wc)return;
+ const inv=Number(S.invest)||0,pays=ORDER.map(sc=>P[sc].pay).filter(x=>x!=null),M=Math.min(60,Math.max(12,Math.ceil(Math.max(...pays,6)*1.4)));
+ const Pd={l:58,r:14,t:12,b:26},iw=Wc-Pd.l-Pd.r,ih=Hc-Pd.t-Pd.b,vals=ORDER.flatMap(sc=>[-inv,-inv+P[sc].monthly*M]),mn=Math.min(0,...vals),mx=Math.max(0,...vals),rg=(mx-mn)||1;
+ const x=m=>Pd.l+m/M*iw,y=v=>Pd.t+ih-(v-mn)/rg*ih,k=v=>Math.abs(v)>=1e6?(v/1e6).toFixed(1)+'M':Math.abs(v)>=1e3?Math.round(v/1e3)+'k':Math.round(v);
+ let o='';for(const v of [mn,0,mx])o+=`<line x1="${Pd.l}" x2="${Wc-Pd.r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity="${v===0?.5:.12}" ${v===0?'stroke-dasharray="4 3"':''}/><text x="${Pd.l-6}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="currentColor" opacity=".6">${v<0?'−':''}$${k(Math.abs(v))}</text>`;
+ const step=M<=12?3:M<=24?6:12;for(let m=0;m<=M;m+=step)o+=`<text x="${x(m)}" y="${Hc-8}" text-anchor="middle" font-size="12" fill="currentColor" opacity=".6">${tr('monthsU',m)}</text>`;
+ ORDER.forEach(sc=>{const p=P[sc];o+=`<line x1="${x(0)}" y1="${y(-inv)}" x2="${x(M)}" y2="${y(-inv+p.monthly*M)}" stroke="${LV[sc].c}" stroke-width="${sc===S.scen?3:2}" ${sc===S.scen?'':'opacity=".7"'}/>`;
+  if(p.pay!=null&&p.pay<=M)o+=`<circle cx="${x(p.pay)}" cy="${y(0)}" r="5" fill="${LV[sc].c}" stroke="var(--card)" stroke-width="2"/>`});
+ pch.innerHTML=o}
+const payRO=new ResizeObserver(()=>drawPay());payRO.observe(pch);
+
+/* ---------- insight report ---------- */
+let repText='',repT=null,LASTREP=null;
+function mergeWin(arr,thr){const SL=slotList(),o=[];arr.forEach((v,i)=>{if(v>=thr){const l=o[o.length-1];if(l&&l.i2===i-1){l.i2=i;l.v+=v}else o.push({i1:i,i2:i,v})}});return o.sort((a,b)=>b.v-a.v).map(x=>({a:SL[x.i1],b:Math.min(S.close,SL[x.i2]+S.slot),v:x.v}))}
+function bestWin(f){const SL=slotList(),w=Math.min(SL.length,Math.max(1,Math.round(300/S.slot)));let best=0,bi=-1;
+ for(let i=0;i+w<=SL.length;i++){const v=f.slice(i,i+w).reduce((a,b)=>a+b,0);if(v>best){best=v;bi=i}}
+ if(bi<0)return null;let a=bi,b=bi+w-1;while(a<b&&!f[a])a++;while(b>a&&!f[b])b--;let s0=SL[a],e0=Math.min(S.close,SL[b]+S.slot);if(e0-s0<240){e0=Math.min(S.close,s0+240);s0=Math.max(S.open,e0-240)}return{a:s0,b:e0,hits:best}}
+function whatIf(mod){const keep={staff:S.staff,combine:S.combine,reset:S.reset};mod();_adC.clear();const r=rangeDates().map(d=>simulate(d,S.scen));Object.assign(S,keep);_adC.clear();
+ return{served:r.reduce((a,x)=>a+x.served,0),lost:r.reduce((a,x)=>a+x.lost,0),rev:r.reduce((a,x)=>a+x.revenue,0),lab:r.reduce((a,x)=>a+x.labour,0)}}
+const avgW=k=>{const l=S.staff.filter(p=>ROLE[p.role].k===k);return l.length?l.reduce((a,p)=>a+(p.wage||0),0)/l.length:ROLE[k==='kitchen'?'line':k==='floor'?'server':k].w};
+function buildReport(){const sc=S.scen,base=totals(sc),A=ALL.map(d=>d[sc]),n=slotList().length,agg=key=>Array.from({length:n},(_,i)=>A.reduce((a,x)=>a+((x[key]||[])[i]||0),0));
+ const fF=agg('sF'),fK=agg('sK'),lostS=agg('lostS'),hoG=agg('hoGap'),sur=agg('sur'),winTxt=w=>w.slice(0,2).map(x=>`${fm(x.a)}–${fm(x.b)}`).join(tr('and')==='and'?', ':'、');
+ const B={served:base.served,lost:base.lost,rev:base.rev,lab:base.lab},recs=[];
+ const add=(title,why,w)=>{const r={title,why,dG:w.served-B.served,dS:w.rev-B.rev,dL:w.lab-B.lab};r.net=r.dS-r.dL;if(r.dG>0||r.net>0)recs.push(r)};
+ const extra=(role,a,b)=>({id:-1,name:'+1',role,speed:100,wage:Math.round(avgW(ROLE[role].k)),s1:fm(a),e1:fm(b),s2:'',e2:'',off:[],offD:[],onD:[]});
+ let w;
+ if((w=bestWin(fF))){const x=w;add(tr('rAddF',fm(x.a),fm(x.b)),tr('rAddFWhy',x.hits),whatIf(()=>{S.staff=[...S.staff,extra('server',x.a,x.b)]}))}
+ if((w=bestWin(fK))){const x=w;add(tr('rAddK',fm(x.a),fm(x.b)),tr('rAddKWhy',x.hits),whatIf(()=>{S.staff=[...S.staff,extra('line',x.a,x.b)]}))}
+ if((w=bestWin(hoG))){const x=w;add(tr('rHost',fm(x.a),fm(x.b)),tr('rHostWhy'),whatIf(()=>{S.staff=[...S.staff,extra('host',x.a,x.b)]}))}
+ if(!S.combine)add(tr('rComb'),tr('rCombWhy'),whatIf(()=>{S.combine=true}));
+ if(S.reset>=3){const nr=Math.max(1,Math.round(S.reset*.6));add(tr('rReset',S.reset,nr),tr('rResetWhy'),whatIf(()=>{S.reset=nr}))}
+ recs.sort((a,b)=>b.net-a.net);
+ const find=[],total=base.served+base.lost,svc=total?Math.round(base.served/total*100):100;
+ find.push(tr('fService',svc,base.lost.toLocaleString(),Math.round(base.lost*avgPrice()).toLocaleString()));
+ const lw=mergeWin(lostS,1);if(lw.length&&base.lost>0)find.push(tr('fLossWin',winTxt(lw)));
+ const sf=mergeWin(fF,Math.max(1,Math.ceil(A.length/3)));if(sf.length)find.push(tr('fShortF',winTxt(sf)));
+ const sk=mergeWin(fK,Math.max(1,Math.ceil(A.length/3)));if(sk.length)find.push(tr('fShortK',winTxt(sk)));
+ const ov=mergeWin(sur.map(v=>v>=A.length*.5?v:0),1),ovH=sur.reduce((a,v)=>a+v,0)*S.slot/60;if(ov.length&&ovH>=3)find.push(tr('fOver',winTxt(ov),Math.round(ovH),Math.round(ovH*avgW('floor')).toLocaleString()));
+ find.push(tr('fLab',base.pct,base.pct>35?tr('fLabHi'):base.pct<18?tr('fLabLo'):''));
+ const eff=A.length?A.reduce((a,x)=>a+x.seatEff,0)/A.length:1,small=A.length?A.reduce((a,x)=>a+x.small,0)/A.length:0;
+ if(eff<.72&&small>.4)find.push(tr('fSeat',Math.round(eff*100),Math.round(small*100)));
+ const ns=A.reduce((a,x)=>a+x.noShowG,0),bk=A.reduce((a,x)=>a+x.bookedG,0);if(ns>0&&bk>0&&S.noShow>=5)find.push(tr('fNoShow',ns,Math.round(ns/bk*100)));
+ for(const m of RES.mstat)if(m.n>=3&&m.avg>m.mu.dur*1.25){find.push(tr('fDwell',m.mu.name,Math.round(m.avg),m.mu.dur));break}
+ if(sc!=='busy'){const tb=totals('busy'),tm=totals('mod');if(tb.lost>tm.lost*1.3+5)find.push(tr('fBusy',tb.lost,tm.lost))}
+ if(A.length>1)find.push(tr('fPeakDay',dayLong(base.pk.date),base.pk.served));
+ {const pl=pnl(sc);find.push(tr('fBE',LV[sc].n,tr(pl.profit>=0?'fBEok':'fBEno'),Math.round(pl.monthly).toLocaleString()));if(pl.pay!=null)find.push(tr('payIn',pl.pay.toFixed(1)));else if(S.invest>0&&pl.monthly<0)find.push(tr('payNever',Math.round(-pl.monthly).toLocaleString()))}
+ const shortShare=A.length?A.reduce((a,x)=>a+x.short,0)/(A.length*n):0;
+ let score=100-Math.min(40,(100-svc)*1.6)-Math.min(25,shortShare*60)-Math.min(15,Math.max(0,Math.abs(base.pct-30)-8)*.8)-Math.min(15,Math.max(0,base.wait-20)*.5);score=Math.max(0,Math.round(score));
+ const grade=score>=80?'gGood':score>=60?'gOk':'gBad',gcol=score>=80?'var(--good)':score>=60?'var(--mod)':'var(--busy)';
+ $('#repMeta').textContent=tr('repMeta',scopeTxt(),LV[sc].n);
+ $('#repScore').innerHTML=`<b style="color:${gcol}">${score}</b><span>/ 100 · ${tr('repScore')} · ${tr(grade)}</span>`;
+ const met=[[svc+'%','mService'],['$'+Math.round(base.lost*avgPrice()).toLocaleString(),'mLostV'],[base.pct+'%','mLabour'],[tr('minS',base.wait),'mWait'],[A.reduce((a,x)=>a+x.short,0),'mShort'],[Math.round(eff*100)+'%','mSeat']];
+ LASTREP={score,grade,met,find,recs};
+ $('#repMet').innerHTML=met.map(([b,k])=>`<div><b>${b}</b><span>${tr(k)}</span></div>`).join('');
+ $('#repFind').innerHTML=find.map(f=>`<li>${esc(f)}</li>`).join('');
+ const sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(Math.round(v)).toLocaleString(),cls=v=>v>0?'pos':v<0?'neg':'';
+ $('#repRec').innerHTML=recs.length?`<tr><th>#</th><th>${tr('thAction')}</th><th>${tr('thGuests')}</th><th>${tr('thSales')}</th><th>${tr('thLabourC')}</th><th>${tr('thNet')}</th></tr>`+recs.map((r,i)=>`<tr><td class="n">${i+1}</td><td><b>${esc(r.title)}</b><small>${esc(r.why)}</small></td><td class="n ${cls(r.dG)}">${sg(r.dG)}</td><td class="n ${cls(r.dS)}">${r.dS<0?'−':'+'}$${Math.abs(r.dS).toLocaleString()}</td><td class="n">${r.dL>0?'+':''}$${r.dL.toLocaleString()}</td><td class="n ${cls(r.net)}">${r.net<0?'−':'+'}$${Math.abs(r.net).toLocaleString()}</td></tr>`).join(''):`<tr><td>${tr('rNone')}</td></tr>`;
+ repText=[`DinnerRush — ${tr('repH')}`,tr('repMeta',scopeTxt(),LV[sc].n),`${tr('repScore')}: ${score}/100 (${tr(grade)})`,'',...met.map(([b,k])=>`${tr(k)}: ${b}`),'',tr('repFind')+':',...find.map(f=>'• '+f),'',tr('repRec')+':',...(recs.length?recs.map((r,i)=>`${i+1}. ${r.title} — ${tr('thGuests')} ${sg(r.dG)}, ${tr('thSales')} ${r.dS<0?'−':'+'}$${Math.abs(r.dS)}, ${tr('thLabourC')} ${r.dL>0?'+':''}$${r.dL}, ${tr('thNet')} ${r.net<0?'−':'+'}$${Math.abs(r.net)}`):[tr('rNone')])].join('\n')}
+function scheduleReport(){clearTimeout(repT);$('#repFind').innerHTML=`<li>${tr('repWait')}</li>`;repT=setTimeout(()=>{try{buildReport()}catch(e){$('#repFind').innerHTML=`<li>${esc(String(e))}</li>`}},60)}
+$('#repCopy').onclick=async()=>{try{await navigator.clipboard.writeText(repText);$('#repMsg').textContent=tr('repCopied')}catch(e){$('#repMsg').textContent=tr('copyFail')}};
+
+/* ---------- saved runs ---------- */
+const snap2=name=>{const t=totals(S.scen);return{name,scope:scopeTxt(),sc:S.scen,served:t.served,lost:t.lost,wait:t.wait,rev:t.rev,pct:t.pct,staff:S.staff.length,type:S.type}};
+$('#sform').onsubmit=e=>{e.preventDefault();const n=$('#sname').value.trim()||String.fromCharCode(65+S.scenarios.length%26);S.scenarios.push({id:++uid,...snap2(n)});if(S.scenarios.length>4)S.scenarios.shift();$('#sname').value='';renderSaved();save()};
+$('#scen').onclick=e=>{const b=e.target.closest('button');if(b){S.scenarios=S.scenarios.filter(x=>x.id!==Number(b.dataset.id));renderSaved();save()}};
+function renderSaved(){const all=[snap2(tr('scenNow')),...S.scenarios],ty=t=>tr({cha:'tyCha',casual:'tyCasual',fine:'tyFine'}[t]||'tyCustom');
+ const rows=[['sScope',x=>x.scope||''],['sSc',x=>LV[x.sc||'mod'].n],['kServed',x=>x.served],['kLost',x=>x.lost],['kWait',x=>tr('minS',x.wait)],['kRev',x=>'$'+Number(x.rev||0).toLocaleString()],['kLab',x=>x.pct+'%'],['sStaff',x=>x.staff],['sType',x=>ty(x.type)]];
+ $('#scen').innerHTML=`<tr><th></th>${all.map((x,i)=>`<th>${esc(x.name)}${i?` <button data-id="${x.id}" style="min-height:28px;padding:0 6px" aria-label="×">×</button>`:''}</th>`).join('')}</tr>`+rows.map(([k,f])=>`<tr><td>${tr(k)}</td>${all.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`).join('')+(S.scenarios.length?'':`<tr><td colspan="2" style="color:var(--mut)">${tr('noScen')}</td></tr>`)}
+
+/* ---------- charts ---------- */
+const ch=$('#chart'),dch=$('#dchart');
+function drawChart(){const Wc=ch.clientWidth,Hc=ch.clientHeight;if(!Wc||!RES||!RES.slots.length)return;const sl=RES.slots,narrow=Wc<520;
+ const Pd={l:34,r:12,t:22,b:26},iw=Wc-Pd.l-Pd.r,ih=Hc-Pd.t-Pd.b;
+ const maxY=Math.max(RES.seats,...sl.map(x=>x.fl*S.cps),...sl.map(x=>x.avg+x.maxQ),10)*1.1,bw=iw/sl.length,y=v=>Pd.t+ih-v/maxY*ih;
+ let o=`<defs><pattern id="hq" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="6" fill="#c2483b66"/></pattern></defs>`;
+ for(const v of [0,Math.round(maxY/2/5)*5])o+=`<line x1="${Pd.l}" x2="${Wc-Pd.r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".12"/><text x="${Pd.l-6}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="currentColor" opacity=".6">${v}</text>`;
+ const every=Math.max(1,narrow?Math.ceil(180/S.slot):Math.ceil(60/S.slot));
+ sl.forEach((s,i)=>{const x=Pd.l+i*bw+1,w=Math.max(1,bw-2),col=s.cl?'var(--off)':LV[s.pred].c;
+  if(s.avg>0)o+=`<rect x="${x}" y="${y(s.avg)}" width="${w}" height="${y(0)-y(s.avg)}" rx="3" fill="${col}"/>`;
+  if(s.maxQ)o+=`<rect x="${x}" y="${y(s.avg+s.maxQ)}" width="${w}" height="${y(s.avg)-y(s.avg+s.maxQ)}" fill="url(#hq)"/>`;
+  o+=`<rect x="${x}" y="4" width="${w}" height="6" rx="2" fill="${s.cl?'var(--off)':LV[s.input].c}" opacity=".85"/>`;
+  if(i%every===0)o+=`<text x="${x}" y="${Hc-8}" font-size="12" fill="currentColor" opacity=".65">${fm(s.s)}</text>`});
+ let path='';sl.forEach((s,i)=>{const x0=Pd.l+i*bw,x1=x0+bw,yy=y(s.fl*S.cps);path+=(i?`L${x0},${yy}`:`M${x0},${yy}`)+`L${x1},${yy}`});
+ o+=`<path d="${path}" fill="none" stroke="#0b5d63" stroke-width="2" stroke-dasharray="6 4"/>`;
+ o+=`<line x1="${Pd.l}" x2="${Wc-Pd.r}" y1="${y(RES.seats)}" y2="${y(RES.seats)}" stroke="currentColor" stroke-width="2" stroke-dasharray="2 4"/><text x="${Wc-Pd.r-4}" y="${y(RES.seats)-6}" text-anchor="end" font-size="12" font-weight="700" fill="currentColor" paint-order="stroke" stroke="var(--bg)" stroke-width="4">${S.maxCap>0&&S.maxCap<seatsTotal()?tr('capLine',RES.seats):tr('seatsL',RES.seats)}</text>`;
+ const lastFl=sl[0]?sl[0].fl*S.cps:0;o+=`<text x="${Pd.l+4}" y="${y(lastFl)-6}" font-size="12" font-weight="700" fill="#0b5d63" paint-order="stroke" stroke="var(--bg)" stroke-width="4">${tr('capL')}</text>`;
+ o+=`<line id="cur" y1="${Pd.t-8}" y2="${y(0)}" stroke="currentColor" stroke-width="2"/>`;
+ ch.innerHTML=o;ch.dataset.p=JSON.stringify([Pd.l,iw]);markChart()}
+function markChart(){const c=ch.querySelector('#cur');if(!c||!RES)return;const[l,iw]=JSON.parse(ch.dataset.p);const x=l+(Math.min(T,S.close)-S.open)/(S.close-S.open)*iw;c.setAttribute('x1',x);c.setAttribute('x2',x)}
+ch.onclick=e=>{const[l,iw]=JSON.parse(ch.dataset.p||'[0,1]'),r=ch.getBoundingClientRect(),k=(e.clientX-r.left-l)/iw;if(k>=0&&k<=1){T=S.open+k*(S.close-S.open);hud(true);box.scrollIntoView({block:'center'})}};
+function drawDChart(){const Wc=dch.clientWidth,Hc=dch.clientHeight;if(!Wc||ALL.length<2)return;const n=ALL.length,narrow=Wc<520;
+ const Pd={l:40,r:10,t:12,b:28},iw=Wc-Pd.l-Pd.r,ih=Hc-Pd.t-Pd.b,maxY=Math.max(10,...ALL.map(d=>d.busy.served+d.busy.lost))*1.1,gw=iw/n,y=v=>Pd.t+ih-v/maxY*ih,bw=Math.max(1,(gw-4)/3);
+ let o='';for(const v of [0,Math.round(maxY/2/10)*10])o+=`<line x1="${Pd.l}" x2="${Wc-Pd.r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".12"/><text x="${Pd.l-6}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="currentColor" opacity=".6">${v}</text>`;
+ const every=n>14?(narrow?7:3):1;
+ ALL.forEach((d,i)=>{const x0=Pd.l+i*gw+2;if(d.date===viewDate)o+=`<rect x="${x0-2}" y="${Pd.t}" width="${gw}" height="${ih}" fill="currentColor" opacity=".07" rx="4"/>`;
+  ORDER.forEach((sc,j)=>{const v=d[sc].served;o+=`<rect x="${x0+j*bw}" y="${y(v)}" width="${Math.max(1,bw-1)}" height="${y(0)-y(v)}" rx="2" fill="${LV[sc].c}" ${sc===S.scen?'':'opacity=".55"'}/>`});
+  if(i%every===0)o+=`<text x="${x0+gw/2-2}" y="${Hc-8}" text-anchor="middle" font-size="12" fill="currentColor" opacity="${wdOf(d.date)>=5?1:.65}" ${wdOf(d.date)>=5?'font-weight="700"':''}>${n>7?sDate(d.date):STR.dshort[L()][wdOf(d.date)]}</text>`});
+ dch.innerHTML=o;dch.dataset.p=JSON.stringify([Pd.l,iw])}
+dch.onclick=e=>{const[l,iw]=JSON.parse(dch.dataset.p||'[0,1]'),r=dch.getBoundingClientRect(),i=Math.floor((e.clientX-r.left-l)/iw*ALL.length);if(ALL[i])setView(ALL[i].date)};
+const chRO=new ResizeObserver(drawChart);chRO.observe(ch);
+const dRO=new ResizeObserver(drawDChart);dRO.observe(dch);
+const boxRO=new ResizeObserver(fit);boxRO.observe(box);
+
+function renderDetail(){$('#tl').min=S.open;$('#tl').max=S.close;renderAutoSum();scheduleReport();renderPnl();renderSlots();renderMenu();renderMenuStats();renderBook();renderWait();renderRec();renderKpis();renderCards();renderDaily();renderTable();renderRoster();renderGantt();renderSaved();drawChart();hud(true)}
+function changed(){runAll();renderDetail();save()}
+/* ---------- export: Excel + PDF (self-contained) ---------- */
+const TE=new TextEncoder();
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+function zipBlob(files){const parts=[],cent=[];let off=0;
+ for(const f of files){const nm=TE.encode(f.name),d=typeof f.data==='string'?TE.encode(f.data):f.data,c=crc32(d),h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nm.length,true);
+  parts.push(new Uint8Array(h.buffer),nm,d);
+  const cd=new DataView(new ArrayBuffer(46));cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x0800,true);cd.setUint16(14,0x21,true);cd.setUint32(16,c,true);cd.setUint32(20,d.length,true);cd.setUint32(24,d.length,true);cd.setUint16(28,nm.length,true);cd.setUint32(42,off,true);
+  cent.push(new Uint8Array(cd.buffer),nm);off+=30+nm.length+d.length}
+ const cs=cent.reduce((a,b)=>a+b.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cent,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const xesc=v=>String(v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const colL=i=>{let s='';i++;while(i){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+function xlsxBlob(sheets){const sh=sheets.map((S0,si)=>{const rows=S0.rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((c,ci)=>{if(c==null||c==='')return'';const o=typeof c==='object'?c:{v:c},ref=colL(ci)+(ri+1);
+   const st=o.b?1:o.pct?3:o.money?2:0;if(typeof o.v==='number'&&isFinite(o.v))return`<c r="${ref}"${st?` s="${st}"`:''}><v>${o.pct?o.v/100:o.v}</v></c>`;
+   return`<c r="${ref}" t="inlineStr"${st?` s="${st}"`:''}><is><t xml:space="preserve">${xesc(o.v)}</t></is></c>`}).join('')+'</row>').join('');
+  const cols=S0.widths?`<cols>${S0.widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:'';
+  const pane=S0.freeze?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${S0.freeze}" topLeftCell="A${S0.freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`:'';
+  return{name:`xl/worksheets/sheet${si+1}.xml`,data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${pane}${cols}<sheetData>${rows}</sheetData></worksheet>`}});
+ const safe=n=>String(n).replace(/[\[\]:*?\/\\]/g,' ').slice(0,31)||'Sheet';
+ return zipBlob([
+  {name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`},
+  {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+  {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((x,i)=>`<sheet name="${xesc(safe(x.name))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`},
+  {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+  {name:'xl/styles.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="9" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`},
+  ...sh.map(x=>({name:x.name,data:x.data}))])}
+function exportData(){buildReport();const R0=LASTREP||{score:0,grade:'gOk',met:[],find:[],recs:[]},B=o=>({v:o,b:true}),M=v=>({v:Math.round(v),money:true}),PC=v=>({v:Math.round(v),pct:true});
+ const T3=Object.fromEntries(ORDER.map(sc=>[sc,totals(sc)])),P3=Object.fromEntries(ORDER.map(sc=>[sc,pnl(sc)])),N=ALL.length,ty=tr({cha:'tyCha',casual:'tyCasual',fine:'tyFine'}[S.type]||'tyCustom');
+ const mult={day:1,week:7,month:365/12}[S.pnlView]||1,pv=tr({day:'pvDayT',week:'pvWeekT',month:'pvMonthT'}[S.pnlView]);
+ const days7=Array.from({length:7},(_,i)=>addD(viewDate,i));
+ const roster=S.staff.map(p=>{const cells=days7.map(d=>onDay(p,d,wdOf(d))&&shiftHrs(p)>0?(shiftTxt(p)||'–'):tr('off')),hrs=days7.reduce((a,d)=>a+(onDay(p,d,wdOf(d))?shiftHrs(p):0),0);return{p,cells,hrs,cost:hrs*(p.wage||0)}});
+ const bks=rangeDates().flatMap(d=>bookingsFor(d,S.scen).map(b=>({...b,date:d}))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ return{R0,B,M,PC,T3,P3,N,ty,mult,pv,days7,roster,bks}}
+function buildXlsx(){const X=exportData(),{R0,B,M,PC,T3,P3,N,ty,mult,pv,days7,roster,bks}=X,sheets=[];
+ const sumRows=[[B(tr('exTitle'))],[tr('exGen',new Date().toLocaleString())],[scopeTxt()],[tr('exType'.replace('exType','typeH')),ty],[tr('seatInfo',S.tables.length,seatsTotal())],[],
+  [B(tr('exMetric')),...ORDER.map(sc=>B(LV[sc].n))],
+  [tr('kServed'),...ORDER.map(sc=>T3[sc].served)],[tr('kLost'),...ORDER.map(sc=>T3[sc].lost)],[tr('kWait')+' (min)',...ORDER.map(sc=>T3[sc].wait)],
+  [tr('kRev')+' (CAD)',...ORDER.map(sc=>M(T3[sc].rev))],[tr('plLab')+' (CAD)',...ORDER.map(sc=>M(T3[sc].lab))],[tr('kLab'),...ORDER.map(sc=>PC(T3[sc].pct))],
+  [tr('cShort'),...ORDER.map(sc=>T3[sc].short)],[tr('exProfit')+' (CAD)',...ORDER.map(sc=>M(P3[sc].profit*N))],[tr('payH')+' (months)',...ORDER.map(sc=>P3[sc].pay!=null?Math.round(P3[sc].pay*10)/10:tr('payNo'))],
+  [],[tr('exNote')]];
+ sheets.push({name:tr('exSum'),rows:sumRows,widths:[34,16,16,16]});
+ sheets.push({name:tr('exInsight'),widths:[6,60,12,14,14,14],rows:[[B(tr('repH'))],[tr('exScore',R0.score,tr(R0.grade))],[],...R0.met.map(([v,k])=>['',tr(k),v]),[],[B(tr('repFind'))],...R0.find.map(f=>['•',f]),[],
+  [B('#'),B(tr('thAction')),B(tr('thGuests')),B(tr('thSales')+' (CAD)'),B(tr('thLabourC')+' (CAD)'),B(tr('thNet')+' (CAD)')],...R0.recs.map((r,i)=>[i+1,r.title+' — '+r.why,r.dG,M(r.dS),M(r.dL),M(r.net)])]});
+ if(N>1)sheets.push({name:tr('exDaily'),freeze:1,widths:[14,10,10,14,14,14,12,14,14,12],rows:[[B(tr('thDate')),B(tr('wdL')),B(tr('thStaffOn')),...ORDER.map(sc=>B(tr('thServedSc',LV[sc].n))),B(tr('thLostSc',LV[S.scen].n)),B(tr('thRevSc',LV[S.scen].n)),B(tr('thLab')),B(tr('thShort'))],
+  ...ALL.map(d=>{const a=d[S.scen];return[d.date,STR.dshort[L()][wdOf(d.date)],a.staffOn,...ORDER.map(sc=>d[sc].served),a.lost,M(a.revenue),M(a.labour),a.short]})]});
+ sheets.push({name:sDate(viewDate).replace('/','-')+' '+tr('thSlot'),freeze:1,widths:[14,12,10,10,12,10,10,10,8,12,14,14],rows:[[B(tr('thSlot')),B(tr('thSet')),B(tr('thBook')),B(tr('thArr')),B(tr('thAvg')),B('%'),B(tr('thQ')),B(tr('thWait')),B(tr('thLost')),B(tr('thPred')),B(tr('thNeed')),B(tr('thNeedK'))],
+  ...RES.slots.map(s=>[`${fm(s.s)}–${fm(s.e)}`,s.cl?tr('closedS'):s.pos?'POS':LV[s.input].n,s.books,s.arr,Math.round(s.avg),PC(s.occ*100),s.maxQ,Math.round(s.wait),s.lost,s.cl?'–':LV[s.pred].n,`${s.needS.toFixed(1)} / ${s.fl.toFixed(1)}`,`${s.needC.toFixed(1)} / ${s.ki.toFixed(1)}`])]});
+ sheets.push({name:tr('pnlH').slice(0,31),widths:[40,16,16,16],rows:[[B(tr('exPnl',pv))],[B(''),...ORDER.map(sc=>B(LV[sc].n))],[tr('plRev'),...ORDER.map(sc=>M(P3[sc].rev*mult))],[tr('plLab'),...ORDER.map(sc=>M(-P3[sc].lab*mult))],
+  ...S.costs.map((c,i)=>[c.name+(c.u==='pctS'||c.u==='pctL'?` (${c.amt}%)`:''),...ORDER.map(sc=>M(-P3[sc].lines[i].v*mult))]),[B(tr('plTot')),...ORDER.map(sc=>M(-P3[sc].tot*mult))],[B(tr('plProfit')),...ORDER.map(sc=>M(P3[sc].profit*mult))],[tr('plMargin'),...ORDER.map(sc=>PC(P3[sc].margin*100))],[],
+  [tr('exBE')+' (CAD/day)',isFinite(P3.mod.be)?M(P3.mod.be):'–'],[tr('payH')+' (months)',...ORDER.map(sc=>P3[sc].pay!=null?Math.round(P3[sc].pay*10)/10:tr('payNo'))],[tr('invest')+' (CAD)',M(S.invest||0)]]});
+ sheets.push({name:tr('exRoster').slice(0,31),freeze:1,widths:[16,14,8,8,...days7.map(()=>14),10,12],rows:[[B(tr('exStaff')),B(tr('exRole')),B(tr('exSpeed')),B(tr('pWage')),...days7.map(d=>B(dayLong(d))),B(tr('exWeekH')),B(tr('exWeekC'))],
+  ...roster.map(r=>[r.p.name,roleName(r.p.role),PC(r.p.speed),r.p.wage,...r.cells,Math.round(r.hrs*10)/10,M(r.cost)])]});
+ sheets.push({name:tr('exBook'),freeze:1,widths:[14,8,24,8,20,10],rows:[[B(tr('thDate')),B(tr('time')),B(tr('name')),B(tr('size')),B(tr('bMenu')),B(tr('exSource'))],...bks.map(b=>{const mn=S.menus.find(x=>x.id===b.menu);return[b.date,b.time,b.name,b.size,mn?mn.name:'',b.auto?tr('exAuto'):tr('exManual')]})]});
+ sheets.push({name:tr('exCosts'),widths:[40,14,16],rows:[[B(tr('cName')),B(tr('cAmt')),B(tr('cUnit'))],...S.costs.map(c=>[c.name,c.amt,tr(UNITS.find(u=>u[0]===c.u)[1])]),[],[tr('invest'),M(S.invest||0)],[],
+  [B(tr('mName')),B(tr('mDur')),B(tr('mPort')),B(tr('mPrice')),B(tr('mShare')),B(tr('mWin'))],...S.menus.map(m=>[m.name,m.dur,m.port,m.price,m.share,`${m.from}–${m.to}`])]});
+ return xlsxBlob(sheets)}
+/* PDF: draw A4 pages on canvas, embed as JPEG */
+const PW=1240,PH=1754,MG=86,PF='Inter,"Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif';
+function wrapT(c,t,w){const out=[];for(const para of String(t).split('\n')){let line='';for(const ch of para){const tst=line+ch;if(c.measureText(tst).width>w&&line){const sp=line.lastIndexOf(' ');if(sp>line.length*.6&&/\w/.test(ch)){out.push(line.slice(0,sp));line=line.slice(sp+1)+ch}else{out.push(line);line=ch.trim()?ch:''}}else line=tst}out.push(line)}return out}
+function pdfDoc(){const pages=[];let c,y;
+ const np=()=>{const k=document.createElement('canvas');k.width=PW;k.height=PH;c=k.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,PW,PH);pages.push(k);
+  c.fillStyle='#0b5d63';c.fillRect(MG,52,30,30);c.strokeStyle='#fff';c.lineWidth=3;c.beginPath();c.arc(MG+15,67,7,0,7);c.stroke();c.fillStyle='#15181c';c.font=`700 20px ${PF}`;c.textAlign='left';c.fillText('DinnerRush',MG+42,74);
+  c.fillStyle='#5d6873';c.font=`400 17px ${PF}`;c.textAlign='right';c.fillText(scopeTxt(),PW-MG,74);c.textAlign='left';c.fillStyle='#e2e5e9';c.fillRect(MG,98,PW-2*MG,1.5);y=128};
+ np();
+ const D={pages,np,get c(){return c},
+  ensure(h){if(y+h>PH-MG)np()},space(h){y+=h},
+  h1(t){D.ensure(70);c.fillStyle='#15181c';c.font=`700 46px ${PF}`;c.fillText(t,MG,y+44);y+=64},
+  h2(t,need=300){D.ensure(need+70);y+=24;c.fillStyle='#15181c';c.font=`700 29px ${PF}`;c.fillText(t,MG,y+28);y+=46},
+  p(t,o={}){const sz=o.size||19,lh=Math.round(sz*1.5);c.font=`${o.w||400} ${sz}px ${PF}`;for(const ln of wrapT(c,t,PW-2*MG)){D.ensure(lh);c.font=`${o.w||400} ${sz}px ${PF}`;c.fillStyle=o.color||'#3a424a';c.fillText(ln,MG,y+sz);y+=lh}y+=o.after??6},
+  bullets(arr){for(const t of arr){c.font=`400 19px ${PF}`;const ls=wrapT(c,t,PW-2*MG-28);D.ensure(ls.length*29+4);c.fillStyle='#0b5d63';c.beginPath();c.arc(MG+7,y+14,4,0,7);c.fill();c.fillStyle='#3a424a';c.font=`400 19px ${PF}`;ls.forEach((ln,i)=>c.fillText(ln,MG+28,y+20+i*29));y+=ls.length*29+6}},
+  kpis(items){const w=(PW-2*MG)/items.length;D.ensure(104);items.forEach(([v,l,col],i)=>{const x=MG+i*w;if(i){c.fillStyle='#e2e5e9';c.fillRect(x-12,y,1.5,84)}c.fillStyle=col||'#15181c';c.font=`600 33px ${PF}`;c.fillText(String(v),x,y+40);c.fillStyle='#5d6873';c.font=`400 16px ${PF}`;for(const[j,ln]of wrapT(c,l,w-22).slice(0,2).entries())c.fillText(ln,x,y+68+j*20)});y+=110},
+  table(head,rows,ws,o={}){const tw=PW-2*MG,sum=ws.reduce((a,b)=>a+b,0),W=ws.map(f=>f*tw/sum),rh=o.rh||34,fs=o.fs||16;
+   const cellTxt=(v,x,w,right,bold,col)=>{c.font=`${bold?600:400} ${fs}px ${PF}`;c.fillStyle=col||'#15181c';let t=String(v??'');while(t.length>1&&c.measureText(t).width>w-14)t=t.slice(0,-2)+'…';c.textAlign=right?'right':'left';c.fillText(t,right?x+w-7:x+7,y+rh/2+fs*.36);c.textAlign='left'};
+   const head0=()=>{c.fillStyle='#f0f2f4';c.fillRect(MG,y,tw,rh);let x=MG;head.forEach((h,i)=>{c.font=`600 ${fs-1}px ${PF}`;cellTxt(h,x,W[i],i>0&&!o.left&&o.alignL!==i,true,'#5d6873');x+=W[i]});y+=rh};
+   D.ensure(rh*2+4);head0();
+   rows.forEach(r=>{const cells=r.cells||r;if(y+rh>PH-MG){np();head0()}if(r.hl){c.fillStyle='#f6f7f8';c.fillRect(MG,y,tw,rh)}let x=MG;
+    cells.forEach((v,i)=>{const o2=v&&typeof v==='object'?v:{t:v};if(o2.pill){c.font=`600 ${fs-3}px ${PF}`;const pw=c.measureText(o2.t).width+14,px=i>0?x+W[i]-7-pw:x+7;c.fillStyle=o2.pill;c.beginPath();c.roundRect(px,y+rh/2-11,pw,22,4);c.fill();c.fillStyle='#fff';c.fillText(o2.t,px+7,y+rh/2+5)}
+     else cellTxt(o2.t,x,W[i],i>0&&!o.left&&o.alignL!==i,o2.b||r.b,o2.color);x+=W[i]});
+    c.fillStyle='#e2e5e9';c.fillRect(MG,y+rh-1,tw,1);y+=rh});y+=14},
+  draw(h,fn){D.ensure(h+10);fn(c,MG,y,PW-2*MG,h);y+=h+14}};
+ return D}
+function pdfBars(c,x,y,w,h,cats,series,opt={}){const mx=Math.max(1,...series.flatMap(s=>s.vals),opt.line||0)*1.12,yy=v=>y+h-28-(v/mx)*(h-40),n=cats.length,gw=w/n,bw=Math.max(2,(gw-6)/series.length);
+ c.strokeStyle='#e2e5e9';c.lineWidth=1;for(const v of [0,mx/2]){c.beginPath();c.moveTo(x+40,yy(v));c.lineTo(x+w,yy(v));c.stroke();c.fillStyle='#8a949e';c.font=`400 13px ${PF}`;c.textAlign='right';c.fillText(Math.round(v),x+34,yy(v)+4)}c.textAlign='left';
+ const ix=x+44,iw=w-44,gw2=iw/n,bw2=Math.max(2,(gw2-6)/series.length);
+ cats.forEach((cat,i)=>{series.forEach((s,j)=>{const v=s.vals[i];c.fillStyle=typeof s.col==='function'?s.col(i):s.col;c.fillRect(ix+i*gw2+3+j*bw2,yy(v),bw2-1,yy(0)-yy(v))});
+  if(i%Math.max(1,Math.ceil(n/12))===0){c.fillStyle='#5d6873';c.font=`400 13px ${PF}`;c.fillText(cat,ix+i*gw2+2,y+h-8)}});
+ if(opt.line){c.strokeStyle='#15181c';c.setLineDash([4,4]);c.beginPath();c.moveTo(ix,yy(opt.line));c.lineTo(x+w,yy(opt.line));c.stroke();c.setLineDash([]);c.fillStyle='#15181c';c.font=`600 13px ${PF}`;c.textAlign='right';c.fillText(opt.lineLabel||'',x+w,yy(opt.line)-6);c.textAlign='left'}}
+function pdfBlob(pages){const chunks=[],offs=[];let off=0;const push=b=>{chunks.push(b);off+=b.length},pushS=s=>push(TE.encode(s));
+ const jpgs=pages.map(p=>{const bin=atob(p.toDataURL('image/jpeg',.9).split(',')[1]),b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return b});
+ pushS('%PDF-1.4\n');const obj=(id,body)=>{offs[id]=off;pushS(id+' 0 obj\n');typeof body==='string'?pushS(body):body();pushS('\nendobj\n')};
+ obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>(3+3*i)+' 0 R').join(' ')}] >>`);
+ pages.forEach((p,i)=>{const pid=3+3*i,cs='q 595.28 0 0 841.89 0 0 cm /Im0 Do Q';
+  obj(pid,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 ${pid+2} 0 R >> >> /Contents ${pid+1} 0 R >>`);
+  obj(pid+1,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+  obj(pid+2,()=>{pushS(`<< /Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpgs[i].length} >>\nstream\n`);push(jpgs[i]);pushS('\nendstream')})});
+ const total=3+3*pages.length,xr=off;let x=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+ pushS(x+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`);return new Blob(chunks,{type:'application/pdf'})}
+async function buildPdf(){try{await document.fonts.ready}catch(e){}const X=exportData(),{R0,T3,P3,N,ty,mult,pv,days7,roster}=X,D=pdfDoc(),sc=S.scen,t=T3[sc],money=v=>(v<0?'−':'')+'$'+Math.abs(Math.round(v)).toLocaleString();
+ D.h1(tr('exTitle'));D.p(`${scopeTxt()} · ${LV[sc].n} · ${ty}`,{size:20,color:'#15181c',w:500,after:0});D.p(tr('exGen',new Date().toLocaleString())+' · '+tr('exNote'),{size:16,color:'#8a949e',after:16});
+ D.kpis([[t.served.toLocaleString(),tr('kServed')],[t.lost.toLocaleString(),tr('kLost')],[tr('minS',t.wait),tr('kWait')],['$'+t.rev.toLocaleString(),tr('kRev')],[t.pct+'%',tr('kLab')],[money(P3[sc].profit*N),tr('exProfit'),P3[sc].profit>=0?'#2f7d5b':'#c2483b']]);
+ D.h2(tr('compH'));
+ D.table([tr('exMetric'),...ORDER.map(s=>LV[s].n)],[[tr('kServed'),...ORDER.map(s=>T3[s].served.toLocaleString())],[tr('kLost'),...ORDER.map(s=>T3[s].lost)],[tr('kWait'),...ORDER.map(s=>tr('minS',T3[s].wait))],[tr('kRev'),...ORDER.map(s=>'$'+T3[s].rev.toLocaleString())],
+  [tr('kLab'),...ORDER.map(s=>T3[s].pct+'%')],[tr('cShort'),...ORDER.map(s=>T3[s].short)],{b:true,cells:[tr('exProfit'),...ORDER.map(s=>({t:money(P3[s].profit*N),color:P3[s].profit>=0?'#2f7d5b':'#c2483b'}))]},[tr('payH'),...ORDER.map(s=>P3[s].pay!=null?tr('monthsU',P3[s].pay.toFixed(1)):tr('payNo'))]],[3,2,2,2]);
+ D.h2(tr('repH'));D.p(tr('exScore',R0.score,tr(R0.grade)),{size:22,w:600,color:R0.score>=80?'#2f7d5b':R0.score>=60?'#c98f22':'#c2483b'});
+ D.kpis(R0.met.map(([v,k])=>[v,tr(k)]));D.p(tr('repFind'),{size:20,w:600,color:'#15181c'});D.bullets(R0.find);D.space(8);D.p(tr('repRec'),{size:20,w:600,color:'#15181c'});
+ if(R0.recs.length){const sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(Math.round(v)).toLocaleString();D.table(['#',tr('thAction'),tr('thGuests'),tr('thSales'),tr('thLabourC'),tr('thNet')],R0.recs.map((r,i)=>[String(i+1),r.title,sg(r.dG),money(r.dS),money(r.dL),{t:money(r.net),color:r.net>=0?'#2f7d5b':'#c2483b'}]),[0.5,5,1.3,1.6,1.6,1.6],{alignL:1})}else D.p(tr('rNone'));
+ D.h2(tr('exPnl',pv));
+ D.table(['',...ORDER.map(s=>LV[s].n)],[{b:true,cells:[tr('plRev'),...ORDER.map(s=>money(P3[s].rev*mult))]},[tr('plLab'),...ORDER.map(s=>money(-P3[s].lab*mult))],...S.costs.map((cst,i)=>[cst.name+(cst.u==='pctS'||cst.u==='pctL'?` (${cst.amt}%)`:''),...ORDER.map(s=>money(-P3[s].lines[i].v*mult))]),
+  [tr('plTot'),...ORDER.map(s=>money(-P3[s].tot*mult))],{b:true,hl:true,cells:[tr('plProfit'),...ORDER.map(s=>({t:money(P3[s].profit*mult),color:P3[s].profit>=0?'#2f7d5b':'#c2483b'}))]},[tr('plMargin'),...ORDER.map(s=>Math.round(P3[s].margin*100)+'%')]],[3,2,2,2]);
+ D.p(isFinite(P3.mod.be)?tr('beT',Math.round(P3.mod.be).toLocaleString(),Math.round(P3.mod.beG)).replace(/<\/?b>/g,''):tr('beNever'));
+ if(N>1){D.h2(tr('exDaily'),420);D.draw(300,(c,x,y,w,h)=>pdfBars(c,x,y,w,h,ALL.map(d=>N>7?sDate(d.date):STR.dshort[L()][wdOf(d.date)]),ORDER.map(s=>({vals:ALL.map(d=>d[s].served),col:LV[s].c}))));
+  D.table([tr('thDate'),tr('thStaffOn'),...ORDER.map(s=>LV[s].n),tr('thLostSc',LV[sc].n),tr('thRevSc',LV[sc].n),tr('thShort')],ALL.map(d=>{const a=d[sc];return{hl:d.date===viewDate,cells:[dayLong(d.date),a.staffOn,...ORDER.map(s=>d[s].served),a.lost,'$'+a.revenue.toLocaleString(),a.short]}}),[2.2,1,1,1,1,1,1.5,1.1],{fs:15,rh:30})}
+ D.h2(tr('exSlots',dayLong(viewDate),LV[sc].n),420);
+ D.draw(300,(c,x,y,w,h)=>pdfBars(c,x,y,w,h,RES.slots.map(s=>fm(s.s)),[{vals:RES.slots.map(s=>s.avg),col:i=>RES.slots[i].cl?'#aab2ba':LV[RES.slots[i].pred].c}],{line:RES.seats,lineLabel:tr('seatsL',RES.seats)}));
+ D.table([tr('thSlot'),tr('thSet'),tr('thArr'),tr('thAvg'),tr('thQ'),tr('thWait'),tr('thLost'),tr('thPred'),tr('thNeed'),tr('thNeedK')],RES.slots.map(s=>[`${fm(s.s)}–${fm(s.e)}`,s.cl?{t:tr('closedS'),pill:'#aab2ba'}:{t:s.pos?'POS':LV[s.input].n,pill:LV[s.input].c},s.arr,`${Math.round(s.avg)} (${Math.round(s.occ*100)}%)`,s.maxQ,s.wait>=1?Math.round(s.wait)+'′':'–',s.lost||'',s.cl?'–':{t:LV[s.pred].n,pill:LV[s.pred].c},{t:`${s.needS.toFixed(1)}/${s.fl.toFixed(1)}`,color:s.shortF?'#c2483b':null},{t:`${s.needC.toFixed(1)}/${s.ki.toFixed(1)}`,color:s.shortK?'#c2483b':null}]),[1.6,1.4,.9,1.3,.9,.9,.8,1.4,1.2,1.2],{fs:14,rh:29});
+ {const pk=RES.slots.reduce((a,s)=>s.avg>a.avg?s:a,RES.slots[0]),prevT=T,ph=heatOn;heatOn=false;T=pk?pk.s+S.slot/2:T;draw();const k=document.createElement('canvas');k.width=cv.width;k.height=cv.height;k.getContext('2d').drawImage(cv,0,0);T=prevT;heatOn=ph;draw();
+  const iw=PW-2*MG;D.h2(tr('exFloor')+(pk?' · '+fm(pk.s+S.slot/2):''),iw*520/800+20);D.draw(iw*520/800,(c,x,y,w,h)=>{c.drawImage(k,x,y,w,h);c.strokeStyle='#e2e5e9';c.strokeRect(x,y,w,h)})}
+ D.h2(tr('exRoster'));
+ D.table([tr('exStaff'),...days7.map(d=>STR.dshort[L()][wdOf(d)]+' '+sDate(d)),tr('exWeekH')],roster.map(r=>[`${r.p.name} · ${roleName(r.p.role)}`,...r.cells.map(v=>v===tr('off')?{t:v,color:'#8a949e'}:v),r.hrs.toFixed(1)]),[2.6,...days7.map(()=>1.35),.9],{fs:13,rh:30,left:true});
+ D.p(tr('labNote',RES.labour.toLocaleString(),LV[sc].n,RES.revenue.toLocaleString(),RES.revenue?Math.round(RES.labour/RES.revenue*100):0),{size:16,color:'#5d6873'});
+ D.pages.forEach((p,i)=>{const c=p.getContext('2d');c.fillStyle='#8a949e';c.font=`400 15px ${PF}`;c.textAlign='left';c.fillText(tr('exNote'),MG,PH-44);c.textAlign='right';c.fillText(`${i+1} / ${D.pages.length}`,PW-MG,PH-44);c.textAlign='left'});
+ return pdfBlob(D.pages)}
+async function saveFile(name,blob,msgSel){const msg=$(msgSel||'#expMsg');
+ try{if(window.claude&&typeof window.claude.use==='function'){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:blob});msg.textContent=tr('expSaved',name);return}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg.textContent=tr('expSaved',name)}
+ catch(e){msg.textContent=e&&e.code==='declined'?tr('expDecl'):tr('expFail',(e&&(e.message||e.code))||e)}}
+$('#expXlsx').onclick=async()=>{$('#expMsg').textContent=tr('expWork');await new Promise(r=>setTimeout(r,30));try{await saveFile(`DinnerRush-${viewDate}-${LV[S.scen].n}.xlsx`,buildXlsx())}catch(e){$('#expMsg').textContent=tr('expFail',e.message||e)}};
+$('#expPdf').onclick=async()=>{$('#expMsg').textContent=tr('expWork');await new Promise(r=>setTimeout(r,30));try{await saveFile(`DinnerRush-report-${viewDate}-${LV[S.scen].n}.pdf`,await buildPdf())}catch(e){$('#expMsg').textContent=tr('expFail',e.message||e)}};
+
+/* ---------- sync + backup ---------- */
+const DEV=(()=>{try{let d=localStorage.getItem('dr-dev');if(!d){d=Math.random().toString(36).slice(2);localStorage.setItem('dr-dev',d)}return d}catch(e){return Math.random().toString(36).slice(2)}})();
+const nowT=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+function setSync(k){const el=$('#sync');el.textContent=tr(k,nowT());el.dataset.k=k}
+const exportJSON=withBg=>{const c={...S};if(!withBg||(c.bg&&c.bg.length>240000))delete c.bg;return JSON.stringify({app:'DinnerRush',v:3,state:c})};
+let cloudBusy=false,cloudDirty=false;
+async function pushCloud(){if(!cloud)return;if(cloudBusy){cloudDirty=true;return}cloudBusy=true;setSync('sySyncing');
+ try{const c={...S};delete c.bg;if(cloud.kind==='net'){const img=S.bg&&S.bg.length<6e6?S.bg:'',body={v:S._t||Date.now(),dev:DEV,s:JSON.stringify(c)};if(cloud.bgSent!==img){body.bg=img;body.bgv=Date.now()}
+  await api('PUT',body);if(body.bg!==undefined){cloud.bgSent=img;cloud.bgv=body.bgv}setSync('sySynced');cloudBusy=false;if(cloudDirty){cloudDirty=false;pushCloud()}return}
+  await cloud.ref.set({v:S._t||Date.now(),dev:DEV,s:JSON.stringify(c)});
+  const img=S.bg&&S.bg.length<240000?S.bg:'';if(cloud.bgSent!==img){await cloud.bgRef.set({v:S._t||Date.now(),dev:DEV,img});cloud.bgSent=img}setSync('sySynced')}
+ catch(e){setSync(e&&e.status===403?'syDenied':'syErr')}cloudBusy=false;if(cloudDirty){cloudDirty=false;pushCloud()}}
+function applyState(o,t){const bg=S.bg;applying=true;try{S={...defaults(o.lang),...o};if(bg&&!S.bg)S.bg=bg;fixS();if(t)S._t=t;viewDate=S.date;
+ if(S.bg&&S.bg!==bg){bgImg=new Image();bgImg.src=S.bg}initInputs();applyLang();renderMenus();renderStaffList();renderAutoDays();renderPeriods();renderCosts();changed()}finally{applying=false}}
+async function initSync(){setSync('syLocal');try{if(!window.claude||typeof window.claude.use!=='function')return;const db=await window.claude.use('db'),user=await window.claude.use('user');if(!db||!user)return;const id=await user.id();if(!id)return;
+ const ref=db.doc('data/users/'+id+'/state'),bgRef=db.doc('data/users/'+id+'/floorplan');cloud={ref,bgRef,bgSent:null};setSync('sySyncing');
+ const first=await ref.get();
+ if(first.exists){const d=first.data();if((d.v||0)>(S._t||0)){applyState(JSON.parse(d.s),d.v);setSync('sySynced')}else if((S._t||0)>(d.v||0))await pushCloud();else setSync('sySynced')}else await pushCloud();
+ try{const b=await bgRef.get();if(b.exists){const bd=b.data();cloud.bgSent=bd.img||'';if(bd.img&&bd.img!==S.bg&&(bd.v||0)>=(S._t||0)-5000){S.bg=bd.img;bgImg=new Image();bgImg.src=S.bg;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(_){}}}}catch(e){}
+ ref.onSnapshot(sn=>{if(!sn.exists)return;const d=sn.data();if(d.dev!==DEV&&(d.v||0)>(S._t||0)){try{applyState(JSON.parse(d.s),d.v);setSync('sySynced')}catch(e){}}},()=>setSync('syErr'));
+ bgRef.onSnapshot(sn=>{if(!sn.exists)return;const d=sn.data();if(d.dev===DEV)return;const img=d.img||'';if(img!==(S.bg||'')){S.bg=img||null;bgImg=img?Object.assign(new Image(),{src:img}):null;cloud.bgSent=img;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(_){}}},()=>{});
+ }catch(e){setSync(cloud?'syErr':'syLocal')}}
+$('#bkCopy').onclick=async()=>{try{await navigator.clipboard.writeText(exportJSON(true));$('#bkMsg').textContent=tr('bkCopied')}catch(e){$('#bkText').value=exportJSON(true);$('#bkText').select();$('#bkMsg').textContent=tr('copyFail')}};
+$('#bkFile').onclick=()=>saveFile('DinnerRush-'+today()+'.json',new Blob([exportJSON(true)],{type:'application/json'}),'#bkMsg');
+$('#bkIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{$('#bkText').value=rd.result};rd.readAsText(f)};
+$('#bkApply').onclick=()=>{try{const o=JSON.parse($('#bkText').value.trim());const st=o&&o.state?o.state:o;if(!st||!Array.isArray(st.tables))throw 0;booted=true;applyState(st);S._t=Date.now();save();$('#bkMsg').textContent=tr('bkDone');$('#bkText').value=''}catch(e){$('#bkMsg').textContent=tr('bkBad')}};
+
+applyLang();initInputs();renderMenus();renderStaffList();renderAutoDays();renderPeriods();renderCosts();
+T=Math.min(Math.max(1065,S.open),S.close-1);
+changed();booted=true;initSync();
+/* ---------- account + Netlify sync (only when the Netlify Identity module is present) ---------- */
+let NI=null,acct=null,netTimer=null;
+async function api(method,body,q=''){const go=()=>fetch('/api/state'+q,{method,credentials:'same-origin',headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+ let r=await go();if(r.status===401&&NI&&typeof NI.refreshSession==='function'){try{await NI.refreshSession();r=await go()}catch(e){}}
+ if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e}return r.json()}
+function renderAcct(){const b=$('#acct');b.hidden=!NI;b.textContent=acct?String(acct.email||'').split('@')[0]:tr('auLoginBtn');$('#auOut').hidden=!!acct;$('#auIn').hidden=!acct;if(acct)$('#auWho').textContent=tr('auWho',acct.email||'');$('#auGo').textContent=tr(auMode==='login'?'auGo':'auGoSign')}
+let auMode='login';
+$('#acct').onclick=()=>{$('#authBox').hidden=false;$('#auMsg').textContent='';renderAcct()};
+$('#auClose').onclick=()=>{$('#authBox').hidden=true};
+$('#authBox').addEventListener('click',e=>{if(e.target.id==='authBox')$('#authBox').hidden=true});
+$('#auMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;auMode=b.dataset.m;$$('#auMode button').forEach(x=>x.classList.toggle('on',x===b));$('#auPw').autocomplete=auMode==='login'?'current-password':'new-password';renderAcct()};
+$('#auForm').onsubmit=async e=>{e.preventDefault();const em=$('#auEmail').value.trim(),pw=$('#auPw').value;$('#auMsg').textContent=tr('auWait');
+ try{if(auMode==='signup'){await NI.signup(em,pw);$('#auMsg').textContent=tr('auCheckMail');return}await NI.login(em,pw);$('#auPw').value='';await afterLogin()}catch(err){$('#auMsg').textContent=tr('auErr',(err&&err.message)||err)}};
+$('#auGoogle').onclick=()=>{try{NI.oauthLogin('google')}catch(e){$('#auMsg').textContent=tr('auErr',e.message||e)}};
+$('#auForgot').onclick=async()=>{const em=$('#auEmail').value.trim();if(!em){$('#auMsg').textContent=tr('auNeedEmail');return}
+ const f=['requestPasswordRecovery','sendPasswordRecovery','requestRecovery'].map(k=>NI[k]).find(x=>typeof x==='function');if(!f){$('#auMsg').textContent=tr('auNoReset');return}
+ try{await f(em);$('#auMsg').textContent=tr('auResetSent')}catch(e){$('#auMsg').textContent=tr('auErr',e.message||e)}};
+$('#auSetPw').onclick=async()=>{const pw=$('#auNew').value;try{if(typeof NI.updateUser==='function')await NI.updateUser({password:pw});else throw new Error('updateUser');$('#auReset').hidden=true;$('#auMsg').textContent=tr('auPwDone')}catch(e){$('#auMsg').textContent=tr('auErr',e.message||e)}};
+$('#auLogout').onclick=async()=>{try{await NI.logout()}catch(e){}acct=null;stopNet();cloud=null;applyState(defaults(S.lang));S._t=0;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(_){}renderAcct();setSync('syLocal');$('#auMsg').textContent=tr('auLoggedOut')};
+function stopNet(){clearInterval(netTimer);netTimer=null}
+async function netPull(withBg){const d=await api('GET',null,withBg?'?bg=1':'');return d||{}}
+async function startNet(){cloud={kind:'net',bgSent:null,bgv:null};setSync('sySyncing');
+ try{const d=await netPull(true);
+  if(d.s&&(d.v||0)>(S._t||0)){applyState(JSON.parse(d.s),d.v);if(typeof d.bg==='string'){S.bg=d.bg||null;bgImg=d.bg?Object.assign(new Image(),{src:d.bg}):null;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(_){}}cloud.bgSent=d.bg||'';cloud.bgv=d.bgv||null;setSync('sySynced')}
+  else{cloud.bgSent=typeof d.bg==='string'?d.bg:null;cloud.bgv=d.bgv||null;if(!d.s||(S._t||0)>(d.v||0)){if(!S._t)S._t=Date.now();await pushCloud()}else setSync('sySynced')}
+ }catch(e){setSync(e&&e.status===403?'syDenied':'syErr');if(e&&e.status===403){cloud=null;return}}
+ stopNet();netTimer=setInterval(netPoll,30000)}
+async function netPoll(){if(!cloud||cloud.kind!=='net'||document.hidden||cloudBusy)return;
+ try{const d=await netPull(false);if(d.s&&d.dev!==DEV&&(d.v||0)>(S._t||0)){applyState(JSON.parse(d.s),d.v);setSync('sySynced')}
+  if(d.bgv&&d.bgv!==cloud.bgv){const b=await netPull(true);S.bg=b.bg||null;bgImg=b.bg?Object.assign(new Image(),{src:b.bg}):null;cloud.bgSent=b.bg||'';cloud.bgv=b.bgv;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(_){}}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)netPoll()});
+async function afterLogin(){try{acct=await NI.getUser()}catch(e){acct=null}renderAcct();if(acct){$('#authBox').hidden=true;await startNet()}}
+async function initAuth(){NI=window.NI||null;if(!NI)return;renderAcct();
+ try{const r=await NI.handleAuthCallback();if(r&&r.type==='recovery'){$('#authBox').hidden=false;$('#auReset').hidden=false}}catch(e){}
+ try{acct=await NI.getUser()}catch(e){acct=null}renderAcct();if(acct)await startNet()}
+if(window.NI)initAuth();else window.addEventListener('ni-ready',initAuth,{once:true});
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches)setPlay(true);
+requestAnimationFrame(loop);
+}
+</script>
+<script>if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))</script>
+</body>
+</html>
