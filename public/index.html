@@ -86,6 +86,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 .slots button small{display:block;font-weight:700;font-size:11px;letter-spacing:.03em}
 .slots button i{position:absolute;top:2px;right:4px;font-style:normal;font-size:9px;opacity:.9}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
+.lvocc{flex-wrap:wrap;gap:6px}.lvocc input[type=number]{width:74px}.lvg{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.lvk{color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:.02em}
 .seg button{font-size:13px;padding:0 10px}
 .seg button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
 .seg.lv button.on[data-sc=low]{background:var(--low);border-color:var(--low)}.seg.lv button.on[data-sc=mod]{background:var(--mod);border-color:var(--mod)}.seg.lv button.on[data-sc=busy]{background:var(--busy);border-color:var(--busy)}
@@ -243,6 +244,12 @@ input[type=email],input[type=password]{min-height:44px;border-radius:7px;border:
     <h3 data-i="scenEditH"></h3>
     <div class="seg lv" id="scenSeg"><button data-sc="low">LOW</button><button data-sc="mod">MODERATE</button><button data-sc="busy">BUSY</button></div>
     <p class="note" data-i="scenEditNote"></p>
+    <div class="row lvocc"><label data-i="lvOccL"></label>
+     <span class="lvg"><span class="lvk" style="background:var(--low)">LOW</span><input type="number" min="5" max="120" step="1" data-k="lvOcc.low" aria-label="LOW %"><span class="unit">%</span></span>
+     <span class="lvg"><span class="lvk" style="background:var(--mod)">MOD</span><input type="number" min="5" max="120" step="1" data-k="lvOcc.mod" aria-label="MODERATE %"><span class="unit">%</span></span>
+     <span class="lvg"><span class="lvk" style="background:var(--busy)">BUSY</span><input type="number" min="5" max="120" step="1" data-k="lvOcc.busy" aria-label="BUSY %"><span class="unit">%</span></span>
+     <button id="lvReset" data-i="lvReset"></button></div>
+    <p class="note" data-i="lvOccN"></p>
     <div class="seg" id="emode"><button data-m="traffic" class="on" data-i="emTraffic"></button><button data-m="hours" data-i="emHours"></button></div>
     <div id="trafficTools">
      <div class="seg" id="presets" style="margin-top:10px">
@@ -459,10 +466,10 @@ sample:['示範數據：枱位、員工、Booking 同人流係假設，請換成
 tFlow:['時段人流','Traffic'],tMenu:['菜單','Menu'],tBook:['Booking','Bookings'],tStaff:['員工','Staff'],tExtra:['更多因素','Factors'],tLayout:['版面','Layout'],
 date:['開始日期','Start date'],range:['預測範圍','Forecast range'],rDay:['一日','1 day'],rWeek:['一星期','1 week'],rMonth:['一個月','1 month'],
 hours:['營業時間','Opening hours'],to:['至','to'],open:['開門','Open'],close:['關門','Close'],slotLen:['時段長度','Slot length'],
-scenEditH:['三個情景嘅人流','Traffic for the three scenarios'],scenEditNote:['揀一個情景，再逐個時段改 LOW / MODERATE / BUSY。三個情景每次都會一齊計，下面會並排比較。上面個畫面播緊嘅就係你揀嘅情景。','Pick a scenario, then set each slot to LOW / MODERATE / BUSY. All three are always calculated and compared below; the floor above plays the one you pick.'],
+scenEditH:['三個情景嘅人流','Traffic for the three scenarios'],lvOccL:['滿坐程度','Fullness'],lvReset:['預設','Default'],lvOccN:['每個級別大約坐滿幾多 % 枱位（walk-in 來客量會照呢個比例計，Booking 另計）。超過 100% 即係客多過位，會出現排隊。時段預測嘅 LOW / MODERATE / BUSY 分界都會跟住改。','Roughly what % of tables each level fills (walk-in volume scales to this; bookings are added on top). Over 100% means more guests than seats, so queues form. The predicted LOW / MODERATE / BUSY cut-offs follow these values too.'],scenEditNote:['揀一個情景，再逐個時段改 LOW / MODERATE / BUSY。三個情景每次都會一齊計，下面會並排比較。上面個畫面播緊嘅就係你揀嘅情景。','Pick a scenario, then set each slot to LOW / MODERATE / BUSY. All three are always calculated and compared below; the floor above plays the one you pick.'],
 emTraffic:['改人流','Edit traffic'],emHours:['改營業時段','Edit opening'],
 pWeekday:['平日','Weekday'],pWeekend:['週末','Weekend'],pQuiet:['淡季','Quiet season'],allLow:['全部 LOW','All LOW'],allMod:['全部 MODERATE','All MODERATE'],allBusy:['全部 BUSY','All BUSY'],
-slotNoteT:['撳格仔轉 LOW → MODERATE → BUSY（大約填滿 30% / 60% / 90% 枱位嘅來客量）。百分比係呢個情景喺 {0} 嘅模擬坐用率；POS = 用緊匯入數據。','Tap to cycle LOW → MODERATE → BUSY (enough walk-ins to fill about 30% / 60% / 90% of tables). % is this scenario’s simulated occupancy on {0}; POS = imported data.'],
+slotNoteT:['撳格仔轉 LOW → MODERATE → BUSY（大約填滿 {1}% / {2}% / {3}% 枱位嘅來客量）。百分比係呢個情景喺 {0} 嘅模擬坐用率；POS = 用緊匯入數據。','Tap to cycle LOW → MODERATE → BUSY (enough walk-ins to fill about {1}% / {2}% / {3}% of tables). % is this scenario’s simulated occupancy on {0}; POS = imported data.'],
 slotNoteH:['撳格仔設定休息時段（例如落場），休息時唔會入新客，三個情景都一樣。','Tap slots to mark breaks (e.g. afternoon close). No new guests are seated then, in every scenario.'],
 closedS:['休息','Closed'],
 typeH:['餐廳類型','Restaurant type'],tyCha:['茶餐廳','Café (cha chaan teng)'],tyCasual:['一般西餐','Casual dining'],tyFine:['Fine dining','Fine dining'],tyCustom:['自訂','Custom'],
@@ -499,7 +506,7 @@ holiday:['節日','Holiday'],hNone:['普通日子','Normal day'],hLong:['長週�
 event:['附近有活動','Nearby event'],eventNote:['演唱會、球賽散場後 90 分鐘湧入','Surge for 90 min after a concert or game lets out'],eventEnd:['散場時間','Event ends'],boostU:['% 多人','% more guests'],
 bookRulesH:['Booking 規則','Booking rules'],noShow:['甩底率','No-show rate'],late:['最遲遲到','Late by up to'],hold:['預早留枱','Hold table'],holdU:['分鐘（0 = 唔留）','min before (0 = off)'],
 toH:['外賣 / 外送','Takeout and delivery'],toPerHr:['繁忙時每小時','Orders per hour'],toPerHrU:['單（LOW 時約 40%）','at BUSY (about 40% at LOW)'],toPortions:['每單','Portions per order'],portionU2:['份','portions'],toTicket:['每單金額','Average order'],
-posH:['匯入 POS 數據','Import POS data'],posNote:['貼上或者揀 CSV，每行「時間,人數」，例如 18:15,6。真實來客量會用做 MODERATE，LOW 同 BUSY 分別按 70% 同 130% 計。','Paste or choose a CSV with one “time,guests” per line, e.g. 18:15,6. Real arrivals become MODERATE; LOW and BUSY use 70% and 130% of it.'],
+posH:['匯入 POS 數據','Import POS data'],posNote:['貼上或者揀 CSV，每行「時間,人數」，例如 18:15,6。真實來客量會用做 MODERATE，LOW 同 BUSY 按你設定嘅滿坐程度比例計。','Paste or choose a CSV with one “time,guests” per line, e.g. 18:15,6. Real arrivals become MODERATE; LOW and BUSY use 70% and 130% of it.'],
 posPh:['11:30,4\n12:00,18\n12:15,22','11:30,4\n12:00,18\n12:15,22'],posApply:['套用數據','Apply data'],posClear:['清除匯入','Clear import'],posDone:['已套用 {0} 個時段。','Applied to {0} slots.'],posNone:['讀唔到資料，格式要係「時間,人數」。','Nothing read — use “time,guests” per line.'],posCleared:['已清除，返回用 LOW/MOD/BUSY。','Cleared — back to LOW/MOD/BUSY.'],
 planH:['平面圖','Floor plan'],opacity:['圖透明度','Image opacity'],removeImg:['移除圖','Remove image'],layoutNote:['匯入平面圖做底，再按「編輯版面」擺枱。拖動枱、柱、廚房、入口嚟調位置；撳一張枱可以改形狀同凳數，撳一條柱可以改形狀同大細。','Import a floor plan as the backdrop, then tap “Edit layout”. Drag tables, pillars, kitchen and entrance; tap a table to change its shape and seats, or a pillar to change its shape and size.'],
 editL:['編輯版面','Edit layout'],doneL:['完成編輯','Done editing'],delT:['刪除呢張枱','Delete table'],move:['選擇 / 拖動','Select / drag'],
@@ -593,6 +600,9 @@ const RL={senior:[['資深侍應','Senior server']],server:[['侍應','Server']]
 const RCOL={floor:'#15181c',kitchen:'#b5652f',host:'#0b5d63',busser:'#2f8f83'};
 const DAYF=[.85,.85,.9,.95,1.05,1.1,1];
 const LV={low:{n:'LOW',c:'#4a86b5',occ:.3},mod:{n:'MODERATE',c:'#c98f22',occ:.58},busy:{n:'BUSY',c:'#c2483b',occ:.9}};
+const LVDEF={low:30,mod:58,busy:90};
+function lvO(k){const v=S.lvOcc&&Number(S.lvOcc[k]);return(v>0?v:LVDEF[k])/100}
+function scm(sc){return lvO(sc)/lvO('mod')}
 const ORDER=['low','mod','busy'],SCM={low:.7,mod:1,busy:1.3},WEA={sun:1,cloud:.97,rain:.85,snow:.7},HOL={none:1,long:1.1,stat:1.15,eve:1.3,special:1.45},TOF={low:.4,mod:.7,busy:1};
 const MK=(n,dur,port,price,share,from,to)=>({name:n,dur,port,price,share,from,to});
 const TYPES={cha:{menus:[MK(['早餐','Breakfast'],25,1.2,12,20,'07:00','11:30'),MK(['午市套餐','Lunch set'],30,1.4,17,45,'11:00','15:00'),MK(['下午茶','Afternoon tea'],25,1,11,15,'14:30','18:00'),MK(['晚市小菜','Dinner dishes'],45,1.8,22,40,'17:00','23:00')],menu:{spread:35,lingerPct:8,lingerMin:25},combine:true,cps:20,cookRate:55,hold:0,reset:2,kmode:'chinese'},
@@ -641,7 +651,7 @@ if(!S||!Array.isArray(S.tables)){let o=null;try{o=JSON.parse(localStorage.getIte
   S.tables=S.tables.map(t=>({shape:'round',...t}));if(o.levels)S.levels.mod={...o.levels};if(Array.isArray(o.bookings))S.bookings=o.bookings.map(b=>({date:today(),...b}));}}
 S={...defaults(S.lang),...S};
 function fixS(){if(!Array.isArray(S.staff))S.staff=mkStaff();if(!Array.isArray(S.menus)||!S.menus.length)S.menus=mkMenus('casual',S.lang);
-if(!S.levels.low)S.levels={low:{},mod:{},busy:{}};if(!S.auto||!Array.isArray(S.auto.perDay))S.auto=defaults(S.lang).auto;if(!Array.isArray(S.costs))S.costs=mkCosts(S.lang);if(!Array.isArray(S.auto.periods))S.auto.periods=mkPeriods(S.lang,S.auto.dinner);if(S.maxCap==null)S.maxCap=0;if(!S.ops)S.ops={...(OPS[S.type]||OPS.casual)};if(S.ops.share==null){const d=OPS[S.type]||OPS.casual;S.ops.share=d.share;S.ops.strict=d.strict}if(S.invest==null)S.invest=450000;if(!Array.isArray(S.pillars))S.pillars=[];}
+if(!S.levels.low)S.levels={low:{},mod:{},busy:{}};if(!S.auto||!Array.isArray(S.auto.perDay))S.auto=defaults(S.lang).auto;if(!Array.isArray(S.costs))S.costs=mkCosts(S.lang);if(!Array.isArray(S.auto.periods))S.auto.periods=mkPeriods(S.lang,S.auto.dinner);if(S.maxCap==null)S.maxCap=0;if(!S.ops)S.ops={...(OPS[S.type]||OPS.casual)};if(S.ops.share==null){const d=OPS[S.type]||OPS.casual;S.ops.share=d.share;S.ops.strict=d.strict}if(S.invest==null)S.invest=450000;if(!Array.isArray(S.pillars))S.pillars=[];if(!S.lvOcc||typeof S.lvOcc!=='object')S.lvOcc={...LVDEF};for(const k in LVDEF)if(!(Number(S.lvOcc[k])>0))S.lvOcc[k]=LVDEF[k];}
 fixS();
 let viewDate=S.date;
 let saveT,booted=false,applying=false,cloud=null,cloudT=null;
@@ -672,7 +682,7 @@ const _adC=new Map();function avgDine(m){const ck=m==null?-1:m;if(_adC.has(ck))r
 function _avgDine(m){const l=m==null?S.menus:menusAt(m),w=l.reduce((a,x)=>a+(x.share||0),0)||1;return l.reduce((a,x)=>a+x.dur*(x.share||0),0)/w+S.menu.lingerPct/100*S.menu.lingerMin}
 const avgPrice=()=>{const w=S.menus.reduce((a,x)=>a+(x.share||0),0)||1;return S.menus.reduce((a,x)=>a+x.price*(x.share||0),0)/w};
 function envF(m){let f=WEA[S.weather]*HOL[S.holiday];if(S.event.on){const e=toMin(S.event.end);if(m>=e&&m<e+90)f*=1+S.event.boost/100}return f}
-function arrRate(m,sc,wd,seats){if(isClosed(m))return 0;const s=slotStart(m);if(S.rates[s]!=null)return S.rates[s]*SCM[sc]*envF(m);return LV[levelAt(sc,m)].occ*seats*.75*60/avgDine(m)*DAYF[wd]*envF(m)}
+function arrRate(m,sc,wd,seats){if(isClosed(m))return 0;const s=slotStart(m);if(S.rates[s]!=null)return S.rates[s]*scm(sc)*envF(m);return lvO(levelAt(sc,m))*seats*.75*60/avgDine(m)*DAYF[wd]*envF(m)}
 const onDay=(p,date,wd)=>(p.onD||[]).includes(date)||(!p.off.includes(wd)&&!(p.offD||[]).includes(date));
 const inWin=(m,a,b)=>!!(a&&b)&&m>=toMin(a)&&m<toMin(b);
 const onAt=(p,date,wd,m)=>onDay(p,date,wd)&&(inWin(m,p.s1,p.e1)||inWin(m,p.s2,p.e2));
@@ -769,7 +779,7 @@ function simulate(date,sc,full){
   let sum=0,mx=0,maxQ=0,dsum=0;for(let x=a0;x<a1&&x<per.length;x++){const q=per[x];sum+=q.seated;dsum+=q.dem;if(q.seated>mx)mx=q.seated;if(q.q>maxQ)maxQ=q.q}
   const n=Math.max(1,Math.min(a1,per.length)-a0),avg=sum/n,dem=dsum/n,arr=A[ix].arr,lost=A[ix].lost,wait=A[ix].wn?A[ix].wsum/A[ix].wn:0;
   let fl=0,ki=0,ho=0,bu=0;for(let x=s;x<e;x++){const c=capAt(x);fl+=c.fl;ki+=c.ki;ho=Math.max(ho,c.ho);bu=Math.max(bu,c.bu)}fl/=(e-s);ki/=(e-s);
-  const occ=seats?avg/seats:0,pred=cl?'closed':occ>=.75||maxQ>=6?'busy':occ>=.4?'mod':'low';
+  const occ=seats?avg/seats:0,pred=cl?'closed':occ>=(lvO('mod')+lvO('busy'))/2||maxQ>=6?'busy':occ>=(lvO('low')+lvO('mod'))/2?'mod':'low';
   const needS=mx?Math.max(1,Math.ceil(mx/S.cps*10)/10):0,needC=dem>.01?Math.max(.5,Math.ceil(dem*60/S.cookRate*10)/10):0;
   return{s,e,input:levelAt(sc,s),pos:S.rates[s]!=null,cl,arr,lost,wait,avg,mx,maxQ,occ,pred,books:bookN[ix],
    needS,needC,fl,ki,ho,bu,shortF:!cl&&needS>fl+.15,shortK:!cl&&needC>ki+.15}});
@@ -980,6 +990,7 @@ $('#slot').onchange=e=>{S.slot=Number(e.target.value);S.levels={low:{},mod:{},bu
 $('#open').onchange=$('#close').onchange=()=>{const o=toMin($('#open').value||'11:00'),c=toMin($('#close').value||'22:00');if(c>o+S.slot){S.open=o;S.close=c;S.levels={low:{},mod:{},busy:{}};S.closed={};S.rates={};T=Math.min(Math.max(T,o),c-1);changed()}};
 let emode='traffic';
 $('#emode').onclick=e=>{const b=e.target.closest('button');if(!b)return;emode=b.dataset.m;$$('#emode button').forEach(x=>x.classList.toggle('on',x===b));$('#trafficTools').hidden=emode!=='traffic';renderSlots()};
+$('#lvReset').onclick=()=>{S.lvOcc={...LVDEF};initInputs();changed()};
 $('#scenSeg').onclick=e=>{const b=e.target.closest('button');if(b)setScen(b.dataset.sc)};
 function setScen(sc){S.scen=sc;_adC.clear();RES=simulate(viewDate,S.scen,true);renderDetail();save()}
 $('#presets').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.p){S.preset=b.dataset.p;S.levels={low:{},mod:{},busy:{}}}else for(const s of slotList())S.levels[S.scen][s]=b.dataset.all;S.rates={};changed()};
@@ -1088,7 +1099,7 @@ function renderSlots(){$$('#scenSeg button').forEach(b=>b.classList.toggle('on',
  $('#slots').innerHTML=RES.slots.map(x=>x.cl?`<button data-s="${x.s}" style="background:var(--off)" aria-label="${fm(x.s)} ${tr('closedS')}">${fm(x.s)}<small>${tr('closedS')}</small>–</button>`:
   `<button data-s="${x.s}" style="background:${LV[x.input].c}" aria-label="${fm(x.s)} ${LV[x.input].n}">${x.pos?'<i>POS</i>':''}${fm(x.s)}<small>${x.input==='mod'?'MOD':LV[x.input].n}</small>${Math.round(x.occ*100)}%</button>`).join('');
  $$('#presets [data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===S.preset&&!Object.values(S.levels).some(o=>Object.keys(o).length)));
- $('#slotNote').textContent=emode==='hours'?tr('slotNoteH'):tr('slotNoteT',dayLong(viewDate));
+ $('#slotNote').textContent=emode==='hours'?tr('slotNoteH'):tr('slotNoteT',dayLong(viewDate),S.lvOcc.low,S.lvOcc.mod,S.lvOcc.busy);
  $('#dayName').textContent=STR.days[L()][wdOf(S.date)]}
 function renderMenu(){$$('#types button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.type));$('#opsNote').textContent=tr({cha:'opCha',casual:'opCasual',fine:'opFine'}[S.type]||'opCustom');
  const dw=RES.dw,bins=12,mx=Math.max(30,dw[dw.length-1]||60),bw=Math.ceil(mx/bins/5)*5,cnt=Array(bins).fill(0);for(const d of dw)cnt[Math.min(bins-1,Math.floor(d/bw))]++;
